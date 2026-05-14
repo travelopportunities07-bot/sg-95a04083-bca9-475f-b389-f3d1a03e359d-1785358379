@@ -1,0 +1,224 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "submit": "Submit",
+    "search": "Search...",
+    "filter": "Filter",
+    "export": "Export",
+    "download": "Download",
+    "upload": "Upload",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "onboarding": {
+    "next": "Next",
+    "skip": "Skip",
+    "getStarted": "Get Started"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signupLink": "Sign up now",
+      "error": "Login failed. Please check your credentials."
+    },
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Start your integration in Germany",
+      "step1Title": "Basic Information",
+      "step2Title": "Your Details",
+      "step3Title": "Work Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "nationality": "Nationality",
+      "arrivalDate": "Arrival Date in Germany",
+      "languageLevel": "German Level",
+      "jobType": "Job Type",
+      "company": "Company",
+      "worker": "Skilled Worker / Apprentice",
+      "hrManager": "HR Manager",
+      "next": "Next",
+      "previous": "Previous",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in",
+      "success": "Account created successfully! Please check your email.",
+      "passwordMismatch": "Passwords do not match",
+      "error": "Registration failed. Please try again."
+    },
+    "logout": "Sign Out"
+  },
+  "navigation": {
+    "home": "Home",
+    "tasks": "Tasks",
+    "documents": "Documents",
+    "assistant": "Assistant",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "employees": "Employees",
+    "reminders": "Reminders",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "worker": {
+      "welcome": "Welcome, {name}",
+      "subtitle": "Your guide through German bureaucracy",
+      "progressTitle": "Overall Progress",
+      "tasksCompleted": "{completed} of {total} tasks completed",
+      "nextTasks": "Next Tasks",
+      "viewAll": "View All",
+      "badges": "Your Badges",
+      "level": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Almost Done",
+        "completed": "Integrated"
+      },
+      "kpi": {
+        "tasks": "Tasks",
+        "xp": "XP",
+        "activeDays": "Days Active"
+      }
+    },
+    "hr": {
+      "title": "HR Dashboard",
+      "employeesManaged": "{count} employees managed",
+      "avgIntegration": "Avg Integration",
+      "overdueTasks": "Overdue Tasks",
+      "missingDocs": "Missing Documents",
+      "urgentWarnings": "Urgent Warnings",
+      "urgentAlerts": "Urgent Alerts",
+      "employeeList": "Employee Overview",
+      "teamProgress": "Team Progress",
+      "status": {
+        "ok": "OK",
+        "attention": "Attention",
+        "critical": "Critical"
+      }
+    }
+  },
+  "tasks": {
+    "title": "My Tasks",
+    "searchPlaceholder": "Search task...",
+    "filter": {
+      "all": "All",
+      "open": "Open",
+      "completed": "Completed",
+      "urgent": "Urgent"
+    },
+    "categories": {
+      "gesundheit": "Health",
+      "integration": "Integration",
+      "anmeldung": "Registration",
+      "finanzen": "Finance",
+      "steuern": "Taxes",
+      "arbeit": "Work"
+    },
+    "detail": {
+      "steps": "How to do it? (Steps)",
+      "requiredDocs": "Required Documents",
+      "deadline": "Deadline",
+      "markComplete": "Mark as completed",
+      "markIncomplete": "Mark as open",
+      "contactHR": "Contact HR"
+    },
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "overdue": "Overdue"
+    }
+  },
+  "documents": {
+    "title": "My Documents",
+    "subtitle": "Manage your important files",
+    "upload": "Upload",
+    "status": {
+      "validated": "Validated",
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "missing": "Missing"
+    },
+    "types": {
+      "passport": "Passport",
+      "visa": "Visa",
+      "workContract": "Work Contract",
+      "healthInsurance": "Health Insurance",
+      "anmeldung": "Registration Certificate",
+      "other": "Other Documents"
+    },
+    "uploadDialog": {
+      "title": "Upload Document",
+      "subtitle": "Choose a method to upload your document",
+      "camera": "Camera",
+      "cameraDesc": "Take a photo",
+      "gallery": "Gallery",
+      "galleryDesc": "Choose from files",
+      "pdf": "Import PDF",
+      "pdfDesc": "Upload PDF file"
+    },
+    "detail": {
+      "status": "Status",
+      "uploadedOn": "Uploaded on",
+      "validatedOn": "Validated on",
+      "expiresOn": "Expires on",
+      "rejectionReason": "Rejection Reason",
+      "reupload": "Upload again",
+      "uploadNow": "Upload now"
+    },
+    "uploadedOn": "Uploaded on {date}",
+    "expiresOn": "Expires on {date}",
+    "reupload": "Resend"
+  },
+  "assistant": {
+    "title": "AI Assistant",
+    "subtitle": "Your personal guide for Germany",
+    "placeholder": "Ask your question...",
+    "thinking": "Thinking...",
+    "error": "An error occurred. Please try again.",
+    "suggestions": {
+      "title": "Frequently Asked Questions"
+    }
+  },
+  "faq": {
+    "title": "FAQ - Frequently Asked Questions",
+    "subtitle": "Everything about living and working in Germany",
+    "search_placeholder": "Search questions...",
+    "all_categories": "All Categories",
+    "no_results": "No questions found. Try different search terms.",
+    "ai_help": "Question not listed? Use our AI Assistant!",
+    "ask_ai": "Go to AI Assistant"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "stats": "Statistics",
+    "settings": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "logout": "Sign Out"
+  },
+  "notifications": {
+    "taskCompleted": "Task completed!",
+    "documentValidated": "Document validated",
+    "documentRejected": "Document rejected",
+    "reminderSent": "Reminder sent",
+    "error": "An error occurred"
+  }
+}

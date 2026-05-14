@@ -1,0 +1,224 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "submit": "Absenden",
+    "search": "Suchen...",
+    "filter": "Filtern",
+    "export": "Exportieren",
+    "download": "Herunterladen",
+    "upload": "Hochladen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "skip": "Überspringen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "onboarding": {
+    "next": "Weiter",
+    "skip": "Überspringen",
+    "getStarted": "Los geht's"
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melde dich an, um fortzufahren",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "noAccount": "Noch kein Konto?",
+      "signupLink": "Jetzt registrieren",
+      "error": "Anmeldung fehlgeschlagen. Bitte überprüfe deine Anmeldedaten."
+    },
+    "signup": {
+      "title": "Konto erstellen",
+      "subtitle": "Beginne deine Integration in Deutschland",
+      "step1Title": "Grundinformationen",
+      "step2Title": "Deine Details",
+      "step3Title": "Arbeitsinformationen",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "nationality": "Nationalität",
+      "arrivalDate": "Ankunftsdatum in Deutschland",
+      "languageLevel": "Deutschkenntnisse",
+      "jobType": "Art der Stelle",
+      "company": "Unternehmen",
+      "worker": "Fachkraft / Azubi",
+      "hrManager": "HR Manager",
+      "next": "Weiter",
+      "previous": "Zurück",
+      "submit": "Konto erstellen",
+      "hasAccount": "Bereits ein Konto?",
+      "loginLink": "Anmelden",
+      "success": "Konto erfolgreich erstellt! Bitte überprüfe deine E-Mail.",
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "error": "Registrierung fehlgeschlagen. Bitte versuche es erneut."
+    },
+    "logout": "Abmelden"
+  },
+  "navigation": {
+    "home": "Home",
+    "tasks": "Aufgaben",
+    "documents": "Dokumente",
+    "assistant": "Assistent",
+    "profile": "Profil",
+    "dashboard": "Dashboard",
+    "employees": "Mitarbeiter",
+    "reminders": "Erinnerungen",
+    "settings": "Einstellungen"
+  },
+  "dashboard": {
+    "worker": {
+      "welcome": "Willkommen, {name}",
+      "subtitle": "Dein Guide durch die deutsche Bürokratie",
+      "progressTitle": "Gesamtfortschritt",
+      "tasksCompleted": "{completed} von {total} Aufgaben erledigt",
+      "nextTasks": "Nächste Aufgaben",
+      "viewAll": "Alle anzeigen",
+      "badges": "Deine Abzeichen",
+      "level": {
+        "beginner": "Beginner",
+        "intermediate": "Fortgeschritten",
+        "advanced": "Fast fertig",
+        "completed": "Integriert"
+      },
+      "kpi": {
+        "tasks": "Aufgaben",
+        "xp": "XP",
+        "activeDays": "Tage aktiv"
+      }
+    },
+    "hr": {
+      "title": "HR Dashboard",
+      "employeesManaged": "{count} Mitarbeiter betreut",
+      "avgIntegration": "Ø Integration",
+      "overdueTasks": "Überfällige Aufgaben",
+      "missingDocs": "Fehlende Dokumente",
+      "urgentWarnings": "Dringende Warnungen",
+      "urgentAlerts": "Dringende Warnungen",
+      "employeeList": "Mitarbeiter-Übersicht",
+      "teamProgress": "Team-Fortschritt",
+      "status": {
+        "ok": "OK",
+        "attention": "Achtung",
+        "critical": "Kritisch"
+      }
+    }
+  },
+  "tasks": {
+    "title": "Meine Aufgaben",
+    "searchPlaceholder": "Aufgabe suchen...",
+    "filter": {
+      "all": "Alle",
+      "open": "Offen",
+      "completed": "Erledigt",
+      "urgent": "Urgent"
+    },
+    "categories": {
+      "gesundheit": "Gesundheit",
+      "integration": "Integration",
+      "anmeldung": "Anmeldung",
+      "finanzen": "Finanzen",
+      "steuern": "Steuern",
+      "arbeit": "Arbeit"
+    },
+    "detail": {
+      "steps": "Wie geht das? (Schritte)",
+      "requiredDocs": "Erforderliche Dokumente",
+      "deadline": "Frist",
+      "markComplete": "Als erledigt markieren",
+      "markIncomplete": "Als offen markieren",
+      "contactHR": "HR kontaktieren"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "inProgress": "In Bearbeitung",
+      "completed": "Erledigt",
+      "overdue": "Überfällig"
+    }
+  },
+  "documents": {
+    "title": "Meine Dokumente",
+    "subtitle": "Verwalte deine wichtigen Unterlagen",
+    "upload": "Hochladen",
+    "status": {
+      "validated": "Validiert",
+      "pending": "Ausstehend",
+      "rejected": "Abgelehnt",
+      "missing": "Fehlend"
+    },
+    "types": {
+      "passport": "Reisepass (Passeport)",
+      "visa": "Visum",
+      "workContract": "Arbeitsvertrag",
+      "healthInsurance": "Krankenversicherung",
+      "anmeldung": "Anmeldebescheinigung",
+      "other": "Andere Dokumente"
+    },
+    "uploadDialog": {
+      "title": "Dokument hochladen",
+      "subtitle": "Wähle eine Methode zum Hochladen deines Dokuments",
+      "camera": "Kamera",
+      "cameraDesc": "Foto aufnehmen",
+      "gallery": "Galerie",
+      "galleryDesc": "Aus Dateien wählen",
+      "pdf": "PDF importieren",
+      "pdfDesc": "PDF-Datei hochladen"
+    },
+    "detail": {
+      "status": "Status",
+      "uploadedOn": "Hochgeladen am",
+      "validatedOn": "Validiert am",
+      "expiresOn": "Läuft ab am",
+      "rejectionReason": "Ablehnungsgrund",
+      "reupload": "Erneut hochladen",
+      "uploadNow": "Jetzt hochladen"
+    },
+    "uploadedOn": "Hochgeladen am {date}",
+    "expiresOn": "Läuft ab am {date}",
+    "reupload": "Erneut senden"
+  },
+  "assistant": {
+    "title": "KI-Assistent",
+    "subtitle": "Dein persönlicher Helfer für Deutschland",
+    "placeholder": "Stelle deine Frage...",
+    "thinking": "Denkt nach...",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "suggestions": {
+      "title": "Häufig gestellte Fragen"
+    }
+  },
+  "faq": {
+    "title": "FAQ - Häufige Fragen",
+    "subtitle": "Alles über das Leben und Arbeiten in Deutschland",
+    "search_placeholder": "Suche nach Fragen...",
+    "all_categories": "Alle Kategorien",
+    "no_results": "Keine Fragen gefunden. Versuche es mit anderen Suchbegriffen.",
+    "ai_help": "Frage nicht dabei? Nutze unseren KI-Assistenten!",
+    "ask_ai": "Zum KI-Assistenten"
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "personalInfo": "Persönliche Informationen",
+    "stats": "Statistiken",
+    "settings": "Einstellungen",
+    "language": "Sprache",
+    "notifications": "Benachrichtigungen",
+    "darkMode": "Dunkelmodus",
+    "logout": "Abmelden"
+  },
+  "notifications": {
+    "taskCompleted": "Aufgabe erledigt!",
+    "documentValidated": "Dokument validiert",
+    "documentRejected": "Dokument abgelehnt",
+    "reminderSent": "Erinnerung gesendet",
+    "error": "Ein Fehler ist aufgetreten"
+  }
+}
