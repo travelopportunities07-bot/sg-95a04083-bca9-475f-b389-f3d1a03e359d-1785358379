@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Topbar } from "@/components/Topbar";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,6 @@ import {
   MapPin,
   Calendar,
   Briefcase,
-  Languages,
   FileText,
   MessageSquare,
   Building2,
@@ -31,7 +31,10 @@ import {
   Shield,
   Pencil,
   CheckCircle,
-  AlertCircle
+  Scale,
+  Lock,
+  Eye,
+  ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +46,6 @@ export default function ProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Employee Personal Information
   const [personalInfo, setPersonalInfo] = useState({
     firstName: "Ahmad",
     lastName: "Hassan",
@@ -57,8 +59,7 @@ export default function ProfilePage() {
     country: "Deutschland"
   });
 
-  // Professional Information
-  const [professionalInfo, setProfessionalInfo] = useState({
+  const [professionalInfo] = useState({
     position: "Software Entwickler",
     department: "IT Development",
     employeeId: "EMP-2024-1245",
@@ -68,7 +69,6 @@ export default function ProfilePage() {
     status: "Active"
   });
 
-  // HR Contact Information
   const hrContact = {
     name: "Sarah Müller",
     position: "HR Manager - International Talent",
@@ -81,6 +81,13 @@ export default function ProfilePage() {
     company: "TechVision GmbH",
     department: "Human Resources"
   };
+
+  const legalLinks = [
+    { icon: Building2, label: "Impressum", path: "/legal/impressum", color: "from-emerald-500 to-teal-600" },
+    { icon: Lock, label: "Datenschutzerklärung", path: "/legal/datenschutz", color: "from-blue-500 to-cyan-600" },
+    { icon: Scale, label: "AGB", path: "/legal/agb", color: "from-purple-500 to-pink-600" },
+    { icon: Eye, label: "Barrierefreiheitserklärung", path: "/legal/barrierefreiheit", color: "from-orange-500 to-amber-600" }
+  ];
 
   const handleSendMessage = () => {
     if (!message.trim()) {
@@ -109,29 +116,28 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0d0f] pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(16,185,129,0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(20,184,166,0.15),transparent_50%)]" />
-        
-        <div className="container relative py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-display font-bold text-white">Mein Profil</h1>
-            <Button
-              onClick={() => setEditMode(!editMode)}
-              className="bg-white/20 hover:bg-white/30 text-white border-0"
-            >
-              <Pencil className="w-4 h-4 mr-2" />
-              {editMode ? "Abbrechen" : "Bearbeiten"}
-            </Button>
-          </div>
+    <>
+      <Topbar 
+        title="Mein Profil" 
+        subtitle="Verwalte deine persönlichen Informationen"
+        actions={
+          <Button
+            onClick={() => setEditMode(!editMode)}
+            className="bg-[rgba(16,185,129,0.15)] hover:bg-[rgba(16,185,129,0.25)] text-[#10b981] border border-[rgba(16,185,129,0.3)]"
+          >
+            <Pencil className="w-4 h-4 mr-2" />
+            {editMode ? "Abbrechen" : "Bearbeiten"}
+          </Button>
+        }
+      />
 
-          {/* Profile Avatar & Quick Info */}
+      <div className="p-7 space-y-6">
+        {/* Profile Header Card */}
+        <Card className="bg-gradient-to-br from-[#0f2d22] via-[#0a1f17] to-[#071812] border-[rgba(16,185,129,0.3)] p-6">
           <div className="flex items-start gap-6">
-            <Avatar className="w-24 h-24 border-4 border-white/20">
+            <Avatar className="w-24 h-24 border-4 border-[rgba(16,185,129,0.3)]">
               <AvatarImage src="/generated/employee-avatar.png" alt={`${personalInfo.firstName} ${personalInfo.lastName}`} />
-              <AvatarFallback className="bg-white/20 text-white text-2xl font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-2xl font-bold">
                 {personalInfo.firstName[0]}{personalInfo.lastName[0]}
               </AvatarFallback>
             </Avatar>
@@ -141,30 +147,28 @@ export default function ProfilePage() {
                 {personalInfo.firstName} {personalInfo.lastName}
               </h2>
               <div className="flex flex-wrap gap-3 mb-3">
-                <Badge className="bg-white/20 text-white border-0 hover:bg-white/30">
+                <Badge className="bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)]">
                   <Briefcase className="w-3 h-3 mr-1" />
                   {professionalInfo.position}
                 </Badge>
-                <Badge className="bg-white/20 text-white border-0 hover:bg-white/30">
+                <Badge className="bg-[rgba(59,130,246,0.15)] text-[#3b82f6] border-[rgba(59,130,246,0.3)]">
                   <IdCard className="w-3 h-3 mr-1" />
                   {professionalInfo.employeeId}
                 </Badge>
-                <Badge className="bg-emerald-400/30 text-white border-0">
+                <Badge className="bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)]">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   {professionalInfo.status}
                 </Badge>
               </div>
               <p className="text-white/80 text-sm">
-                Mitglied seit {new Date(professionalInfo.startDate).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
+                🚀 Mitglied seit {new Date(professionalInfo.startDate).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
               </p>
             </div>
           </div>
-        </div>
-      </div>
+        </Card>
 
-      <div className="container py-6 space-y-6">
         {/* Personal Information */}
-        <Card className="bg-[#161c21] border-white/10 p-6 fade-in-up hover:border-emerald-500/30 transition-all duration-300">
+        <Card className="bg-[#161c21] border-white/[0.06] p-6 hover:border-[rgba(16,185,129,0.3)] transition-all duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
               <User className="w-5 h-5 text-white" />
@@ -266,32 +270,6 @@ export default function ProfilePage() {
                 <p className="text-white font-medium">{personalInfo.address}</p>
               )}
             </div>
-
-            <div className="space-y-2">
-              <Label className="text-white/60 text-xs">PLZ</Label>
-              {editMode ? (
-                <Input
-                  value={personalInfo.postcode}
-                  onChange={(e) => setPersonalInfo({...personalInfo, postcode: e.target.value})}
-                  className="bg-[#0f1417] border-white/10 text-white"
-                />
-              ) : (
-                <p className="text-white font-medium">{personalInfo.postcode}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white/60 text-xs">Stadt</Label>
-              {editMode ? (
-                <Input
-                  value={personalInfo.city}
-                  onChange={(e) => setPersonalInfo({...personalInfo, city: e.target.value})}
-                  className="bg-[#0f1417] border-white/10 text-white"
-                />
-              ) : (
-                <p className="text-white font-medium">{personalInfo.city}</p>
-              )}
-            </div>
           </div>
 
           {editMode && (
@@ -315,7 +293,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Professional Information */}
-        <Card className="bg-[#161c21] border-white/10 p-6 fade-in-up hover:border-emerald-500/30 transition-all duration-300" style={{ animationDelay: "0.1s" }}>
+        <Card className="bg-[#161c21] border-white/[0.06] p-6 hover:border-[rgba(59,130,246,0.3)] transition-all duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <Briefcase className="w-5 h-5 text-white" />
@@ -374,7 +352,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* HR Contact */}
-        <Card className="bg-[#161c21] border-white/10 p-6 fade-in-up hover:border-emerald-500/30 transition-all duration-300" style={{ animationDelay: "0.2s" }}>
+        <Card className="bg-[#161c21] border-white/[0.06] p-6 hover:border-[rgba(139,92,246,0.3)] transition-all duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
               <Building2 className="w-5 h-5 text-white" />
@@ -405,7 +383,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="space-y-4 mb-6">
+          <div className="space-y-3 mb-6">
             <div className="flex items-start gap-3 p-3 rounded-lg bg-[#0f1417] border border-white/5">
               <Mail className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -433,19 +411,6 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex items-start gap-3 p-3 rounded-lg bg-[#0f1417] border border-white/5">
-              <Phone className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-white/60 text-xs mb-1">Mobil</p>
-                <a 
-                  href={`tel:${hrContact.mobile}`} 
-                  className="text-white font-medium hover:text-emerald-400 transition-colors"
-                >
-                  {hrContact.mobile}
-                </a>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-[#0f1417] border border-white/5">
               <MapPin className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-white/60 text-xs mb-1">Büro</p>
@@ -466,8 +431,7 @@ export default function ProfilePage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card 
-            className="bg-[#161c21] border-white/10 p-4 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer group fade-in-up"
-            style={{ animationDelay: "0.3s" }}
+            className="bg-[#161c21] border-white/[0.06] p-4 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer group"
             onClick={() => router.push("/documents")}
           >
             <div className="flex items-center gap-3">
@@ -475,15 +439,14 @@ export default function ProfilePage() {
                 <FileText className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-white font-medium">Dokumente</p>
+                <p className="text-white font-medium">📄 Dokumente</p>
                 <p className="text-white/60 text-xs">Verwalten</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="bg-[#161c21] border-white/10 p-4 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer group fade-in-up"
-            style={{ animationDelay: "0.35s" }}
+            className="bg-[#161c21] border-white/[0.06] p-4 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer group"
             onClick={() => router.push("/tasks")}
           >
             <div className="flex items-center gap-3">
@@ -491,15 +454,14 @@ export default function ProfilePage() {
                 <CheckCircle className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <p className="text-white font-medium">Aufgaben</p>
+                <p className="text-white font-medium">✅ Aufgaben</p>
                 <p className="text-white/60 text-xs">Checkliste</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="bg-[#161c21] border-white/10 p-4 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer group fade-in-up"
-            style={{ animationDelay: "0.4s" }}
+            className="bg-[#161c21] border-white/[0.06] p-4 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer group"
             onClick={() => router.push("/faq")}
           >
             <div className="flex items-center gap-3">
@@ -507,12 +469,43 @@ export default function ProfilePage() {
                 <MessageSquare className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-white font-medium">FAQ</p>
+                <p className="text-white font-medium">💬 FAQ</p>
                 <p className="text-white/60 text-xs">Hilfe</p>
               </div>
             </div>
           </Card>
         </div>
+
+        {/* Legal Links Section */}
+        <Card className="bg-[#161c21] border-white/[0.06] p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center">
+              <Scale className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-display font-bold text-white">Rechtliches & Informationen</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {legalLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <button
+                  key={link.path}
+                  onClick={() => router.push(link.path)}
+                  className="flex items-center justify-between p-4 rounded-lg bg-[#0f1417] border border-white/5 hover:border-[rgba(16,185,129,0.3)] hover:bg-[#1c242b] transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${link.color} flex items-center justify-center`}>
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-white font-medium text-sm">{link.label}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-emerald-400 transition-colors" />
+                </button>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
       {/* Send Message Dialog */}
@@ -556,6 +549,6 @@ export default function ProfilePage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
