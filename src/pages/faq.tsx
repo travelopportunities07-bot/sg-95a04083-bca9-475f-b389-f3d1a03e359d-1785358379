@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Topbar } from "@/components/Topbar";
 import {
-  ArrowLeft,
   Search,
   Home,
   Briefcase,
@@ -12,8 +12,9 @@ import {
   HeartPulse,
   MapPin,
   BookOpen,
-  Users,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  MessageCircle
 } from "lucide-react";
 import { useRouter } from "next/router";
 
@@ -25,7 +26,6 @@ interface FAQItem {
 }
 
 const faqData: FAQItem[] = [
-  // Anmeldung & Wohnen
   {
     id: "1",
     question: "Was ist eine Anmeldung und warum ist sie wichtig?",
@@ -44,8 +44,6 @@ const faqData: FAQItem[] = [
     answer: "Wohnungssuche in Deutschland: 1) Online-Portale nutzen (ImmobilienScout24, WG-Gesucht, Immowelt), 2) Lokale Zeitungen prüfen, 3) Schwarze Bretter an Universitäten, 4) Facebook-Gruppen für Ihre Stadt, 5) Arbeitgeber fragen (manche bieten Unterstützung). Tipp: Bereiten Sie eine Bewerbungsmappe vor (Gehaltsnachweis, Schufa, Personalausweis-Kopie).",
     category: "anmeldung"
   },
-
-  // Arbeiten in Deutschland
   {
     id: "4",
     question: "Brauche ich eine Arbeitserlaubnis?",
@@ -64,8 +62,6 @@ const faqData: FAQItem[] = [
     answer: "Gesetzlicher Mindesturlaub: 20 Tage bei einer 5-Tage-Woche (24 Tage bei 6-Tage-Woche). Viele Arbeitgeber bieten mehr: 28-30 Tage sind üblich. Urlaubsanspruch steht im Arbeitsvertrag. Sie haben nach 6 Monaten Beschäftigung Anspruch auf den vollen Urlaub. Urlaubstage verfallen meist zum Jahresende (31. März des Folgejahres).",
     category: "arbeiten"
   },
-
-  // Steuern
   {
     id: "7",
     question: "Was ist die Lohnsteuer?",
@@ -84,8 +80,6 @@ const faqData: FAQItem[] = [
     answer: "Absetzbare Kosten: 1) Werbungskosten (Fahrten Wohnung-Arbeit, Arbeitsmittel, Fortbildungen, Homeoffice-Pauschale), 2) Sonderausgaben (Versicherungen, Spenden, Kinderbetreuung), 3) Außergewöhnliche Belastungen (Krankheitskosten, Pflegekosten), 4) Handwerkerleistungen, haushaltsnahe Dienstleistungen. Belege aufbewahren!",
     category: "steuern"
   },
-
-  // Sozialversicherung
   {
     id: "10",
     question: "Was ist eine Krankenversicherung?",
@@ -101,11 +95,9 @@ const faqData: FAQItem[] = [
   {
     id: "12",
     question: "Was ist die Sozialversicherungsnummer?",
-    answer: "Die Sozialversicherungsnummer (Rentenversicherungsnummer) ist Ihre eindeutige Identifikationsnummer für Renten- und Sozialversicherung. Sie bekommen sie automatisch bei der ersten Beschäftigung. Format: 12 Ziffern (z.B. 12 010478 A 123). Sie finden sie auf: Sozialversicherungsausweis, Renteninformation, Gehaltsabrechnung. Arbeitgeber benötigt sie für Anmeldung.",
+    answer: "Die Sozialversicherungsnummer (Rentenversicherungsnummer) ist Ihre eindeutige Identifikationsnummer für Renten- und Sozialversicherung. Sie bekommen sie automatisch bei der ersten Beschäftigung. Format: 12 Ziffern (z.B. 12 010478 A 123). Sie finden sie auf: Sozialversicherungsausweis, Renteninformation, Gehaltsabrechung. Arbeitgeber benötigt sie für Anmeldung.",
     category: "sozialversicherung"
   },
-
-  // Aufenthalt & Visum
   {
     id: "13",
     question: "Welches Visum brauche ich als Fachkraft?",
@@ -124,8 +116,6 @@ const faqData: FAQItem[] = [
     answer: "Familiennachzug ist möglich für: Ehepartner, minderjährige Kinder. Voraussetzungen: 1) Ausreichender Wohnraum (ca. 12qm pro Person), 2) Gesichertes Einkommen (ausreichend für Familie), 3) Krankenversicherung für alle, 4) Visum für Familienangehörige. Bei EU Blue Card: erleichterter Nachzug, teils ohne Deutschkenntnisse. Antrag bei deutscher Botschaft im Heimatland.",
     category: "aufenthalt"
   },
-
-  // Allgemeines
   {
     id: "16",
     question: "Wie eröffne ich ein Bankkonto?",
@@ -165,13 +155,69 @@ export default function FAQPage() {
   const [openQuestions, setOpenQuestions] = useState<Set<string>>(new Set());
 
   const categories = [
-    { id: "all", label: "Alle", icon: BookOpen, gradient: "from-emerald-500/10 to-emerald-600/10" },
-    { id: "anmeldung", label: "Anmeldung", icon: Home, gradient: "from-blue-500/10 to-blue-600/10" },
-    { id: "arbeiten", label: "Arbeiten", icon: Briefcase, gradient: "from-emerald-500/10 to-emerald-600/10" },
-    { id: "steuern", label: "Steuern", icon: FileText, gradient: "from-amber-500/10 to-amber-600/10" },
-    { id: "sozialversicherung", label: "Versicherung", icon: HeartPulse, gradient: "from-rose-500/10 to-rose-600/10" },
-    { id: "aufenthalt", label: "Aufenthalt", icon: MapPin, gradient: "from-violet-500/10 to-violet-600/10" },
-    { id: "allgemein", label: "Allgemein", icon: BookOpen, gradient: "from-slate-500/10 to-slate-600/10" }
+    { 
+      id: "all", 
+      label: "Alle", 
+      icon: BookOpen, 
+      gradient: "from-[#10b981] to-[#34d399]",
+      bgGradient: "from-[#0a1a10] to-[#0f2418]",
+      borderColor: "rgba(16,185,129,0.3)",
+      emoji: "📚"
+    },
+    { 
+      id: "anmeldung", 
+      label: "Anmeldung", 
+      icon: Home, 
+      gradient: "from-[#3b82f6] to-[#60a5fa]",
+      bgGradient: "from-[#0a0f1a] to-[#101828]",
+      borderColor: "rgba(59,130,246,0.3)",
+      emoji: "🏠"
+    },
+    { 
+      id: "arbeiten", 
+      label: "Arbeiten", 
+      icon: Briefcase, 
+      gradient: "from-[#10b981] to-[#34d399]",
+      bgGradient: "from-[#0a1a10] to-[#0f2418]",
+      borderColor: "rgba(16,185,129,0.3)",
+      emoji: "💼"
+    },
+    { 
+      id: "steuern", 
+      label: "Steuern", 
+      icon: FileText, 
+      gradient: "from-[#f59e0b] to-[#fbbf24]",
+      bgGradient: "from-[#1a1200] to-[#201700]",
+      borderColor: "rgba(245,158,11,0.3)",
+      emoji: "📋"
+    },
+    { 
+      id: "sozialversicherung", 
+      label: "Versicherung", 
+      icon: HeartPulse, 
+      gradient: "from-[#ef4444] to-[#f87171]",
+      bgGradient: "from-[#1a0a0a] to-[#2a1010]",
+      borderColor: "rgba(239,68,68,0.3)",
+      emoji: "❤️"
+    },
+    { 
+      id: "aufenthalt", 
+      label: "Aufenthalt", 
+      icon: MapPin, 
+      gradient: "from-[#8b5cf6] to-[#a78bfa]",
+      bgGradient: "from-[#0d0a1a] to-[#141028]",
+      borderColor: "rgba(139,92,246,0.3)",
+      emoji: "🌍"
+    },
+    { 
+      id: "allgemein", 
+      label: "Allgemein", 
+      icon: Sparkles, 
+      gradient: "from-[#06b6d4] to-[#22d3ee]",
+      bgGradient: "from-[#0a1418] to-[#0f2024]",
+      borderColor: "rgba(6,182,212,0.3)",
+      emoji: "✨"
+    }
   ];
 
   const filteredFAQs = faqData.filter(faq => {
@@ -198,83 +244,95 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0d0f] text-[#f0f4f8]">
-      {/* Header with gradient */}
-      <div className="bg-gradient-to-b from-[#0f2d22] via-[#0a1f17] to-[#071812] border-b border-[rgba(16,185,129,0.3)]">
-        <div className="container py-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-[#34d399] hover:bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] rounded-xl"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <div className="inline-flex items-center gap-2 bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] rounded-full px-4 py-1.5 mb-3">
-                <span className="w-2 h-2 rounded-full bg-[#10b981]"></span>
-                <span className="text-xs font-medium text-[#34d399] uppercase tracking-wider">Häufige Fragen</span>
-              </div>
-              <h1 className="text-3xl font-bold mb-1" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>FAQ - Deine Antworten</h1>
-              <p className="text-sm text-[#8fa3b3]">
-                Alles über das Leben und Arbeiten in Deutschland
-              </p>
+    <>
+      <Topbar title="FAQ" subtitle="Häufig gestellte Fragen" />
+      
+      <div className="p-7">
+        {/* Hero Section with Gradient */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f2d22] via-[#0a1f17] to-[#071812] border border-[rgba(16,185,129,0.3)] p-8 mb-6">
+          <div className="absolute top-[-40px] right-[-40px] w-[200px] h-[200px] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.12),transparent_70%)]" />
+          <div className="absolute bottom-[-60px] right-[120px] w-[160px] h-[160px] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.06),transparent_70%)]" />
+          
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] rounded-full px-4 py-1.5 mb-3">
+              <Sparkles className="w-3.5 h-3.5 text-[#34d399]" />
+              <span className="text-xs font-medium text-[#34d399] uppercase tracking-wider">Hilfe & Support</span>
+            </div>
+            <h2 className="font-display text-[26px] font-bold text-[#f0f4f8] mb-2">Häufig gestellte Fragen</h2>
+            <p className="text-[13px] text-[#8fa3b3] mb-4 max-w-xl">
+              Finde schnelle Antworten zu Leben und Arbeiten in Deutschland. Von Anmeldung bis Steuern – alles an einem Ort.
+            </p>
+            
+            {/* Search Bar */}
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#566878]" />
+              <Input
+                placeholder="Frage suchen... (z.B. 'Krankenversicherung', 'Anmeldung')"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 bg-[#161c21] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
+              />
             </div>
           </div>
+        </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#566878]" />
-            <Input
-              placeholder="Frage suchen..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 bg-[#161c21] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
-            />
+        {/* Category Filters with Emojis */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-[#8fa3b3] uppercase tracking-wider mb-3">Kategorien</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const isSelected = selectedCategory === category.id;
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`group relative overflow-hidden rounded-xl p-4 transition-all hover:scale-105 ${
+                    isSelected 
+                      ? `bg-gradient-to-br ${category.bgGradient} border-2` 
+                      : 'bg-[#161c21] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.10)]'
+                  }`}
+                  style={{ borderColor: isSelected ? category.borderColor : undefined }}
+                >
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-gradient-to-br opacity-10" 
+                         style={{ background: `linear-gradient(to bottom right, ${category.borderColor}, transparent)` }} />
+                  )}
+                  <div className="relative flex flex-col items-center gap-2">
+                    <span className="text-2xl">{category.emoji}</span>
+                    <span className={`text-xs font-semibold ${isSelected ? 'text-[#f0f4f8]' : 'text-[#8fa3b3] group-hover:text-[#f0f4f8]'}`}>
+                      {category.label}
+                    </span>
+                    <Badge className={`text-[10px] px-2 py-0.5 ${
+                      isSelected 
+                        ? 'bg-[rgba(16,185,129,0.15)] text-[#34d399] border-[rgba(16,185,129,0.3)]' 
+                        : 'bg-[rgba(255,255,255,0.05)] text-[#566878] border-[rgba(255,255,255,0.06)]'
+                    }`}>
+                      {faqData.filter(f => category.id === "all" || f.category === category.id).length}
+                    </Badge>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
 
-      <div className="container py-6 space-y-6">
-        {/* Category Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            const isSelected = selectedCategory === category.id;
-            return (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all ${
-                  isSelected 
-                    ? 'bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] text-[#34d399]' 
-                    : 'bg-[#161c21] border border-[rgba(255,255,255,0.06)] text-[#8fa3b3] hover:border-[rgba(255,255,255,0.10)] hover:bg-[#1c242b]'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {category.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Results Count */}
-        <div className="flex items-center justify-between text-sm">
-          <p className="text-[#8fa3b3]">
-            {filteredFAQs.length} {filteredFAQs.length === 1 ? "Frage" : "Fragen"} gefunden
+        {/* Results Info */}
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-sm text-[#8fa3b3]">
+            <span className="font-semibold text-[#10b981]">{filteredFAQs.length}</span> {filteredFAQs.length === 1 ? "Frage" : "Fragen"} gefunden
           </p>
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="text-[#34d399] hover:text-[#10b981] font-medium"
+              className="text-xs text-[#34d399] hover:text-[#10b981] font-medium flex items-center gap-1"
             >
-              Suche löschen
+              Suche löschen ✕
             </button>
           )}
         </div>
 
-        {/* FAQ List */}
+        {/* FAQ List with Colorful Categories */}
         {filteredFAQs.length > 0 ? (
           <div className="space-y-3">
             {filteredFAQs.map((faq, index) => {
@@ -283,28 +341,50 @@ export default function FAQPage() {
               return (
                 <div
                   key={faq.id}
-                  className="bg-[#161c21] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden hover:border-[rgba(255,255,255,0.10)] transition-all fade-in-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
+                  className={`group relative overflow-hidden bg-[#161c21] border rounded-xl hover:border-[rgba(255,255,255,0.10)] transition-all`}
+                  style={{ 
+                    borderColor: isOpen ? categoryData.borderColor : 'rgba(255,255,255,0.06)',
+                    animationDelay: `${index * 0.05}s` 
+                  }}
                 >
+                  {isOpen && (
+                    <div className="absolute inset-0 bg-gradient-to-br opacity-5" 
+                         style={{ background: `linear-gradient(to bottom right, ${categoryData.borderColor}, transparent)` }} />
+                  )}
                   <button
                     onClick={() => toggleQuestion(faq.id)}
-                    className="w-full px-6 py-5 flex items-start gap-4 text-left"
+                    className="relative w-full px-6 py-5 flex items-start gap-4 text-left"
                   >
-                    <Badge
-                      className={`flex-shrink-0 bg-gradient-to-r ${categoryData.gradient} text-[#8fa3b3] border-[rgba(255,255,255,0.06)] font-medium text-xs px-3 py-1`}
-                    >
-                      {categoryData.label}
-                    </Badge>
-                    <span className="flex-1 font-semibold text-[#f0f4f8]" style={{fontFamily: 'DM Sans, system-ui, sans-serif'}}>
-                      {faq.question}
-                    </span>
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${categoryData.bgGradient} border flex items-center justify-center`}
+                         style={{ borderColor: categoryData.borderColor }}>
+                      <span className="text-xl">{categoryData.emoji}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge
+                          className={`bg-gradient-to-r text-xs px-2.5 py-0.5 font-medium`}
+                          style={{ 
+                            background: `linear-gradient(to right, ${categoryData.borderColor}40, ${categoryData.borderColor}20)`,
+                            color: '#8fa3b3',
+                            borderColor: categoryData.borderColor
+                          }}
+                        >
+                          {categoryData.label}
+                        </Badge>
+                      </div>
+                      <h3 className="font-semibold text-[15px] text-[#f0f4f8] leading-snug">
+                        {faq.question}
+                      </h3>
+                    </div>
                     <ChevronDown 
-                      className={`w-5 h-5 text-[#566878] transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} 
+                      className={`flex-shrink-0 w-5 h-5 text-[#566878] transition-transform ${isOpen ? 'rotate-180 text-[#10b981]' : ''}`} 
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-6 pb-5 text-sm text-[#8fa3b3] leading-relaxed border-t border-[rgba(255,255,255,0.06)] pt-4 fade-in-up">
-                      {faq.answer}
+                    <div className="relative px-6 pb-5 pt-2">
+                      <div className="pl-14 text-sm text-[#8fa3b3] leading-relaxed border-t border-[rgba(255,255,255,0.06)] pt-4">
+                        {faq.answer}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -313,11 +393,13 @@ export default function FAQPage() {
           </div>
         ) : (
           <Card className="p-12 text-center bg-[#161c21] border-[rgba(255,255,255,0.06)]">
-            <BookOpen className="w-12 h-12 text-[#566878] mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+            <div className="w-16 h-16 rounded-2xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-[#10b981]" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-[#f0f4f8] font-display">
               Keine Fragen gefunden
             </h3>
-            <p className="text-sm text-[#8fa3b3] mb-4">
+            <p className="text-sm text-[#8fa3b3] mb-4 max-w-md mx-auto">
               Versuchen Sie andere Suchbegriffe oder wählen Sie eine andere Kategorie
             </p>
             <Button 
@@ -332,39 +414,31 @@ export default function FAQPage() {
           </Card>
         )}
 
-        {/* Help Card */}
-        <div className="bg-gradient-to-br from-[#0f2d22] to-[#071812] border border-[rgba(16,185,129,0.3)] rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl">💬</span>
+        {/* AI Assistant CTA */}
+        <div className="mt-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0d1a2e] via-[#0f2040] to-[#0a1428] border border-[rgba(59,130,246,0.3)] p-6">
+          <div className="absolute top-[-30px] right-[-30px] w-[150px] h-[150px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.15),transparent_70%)]" />
+          <div className="relative z-10 flex items-start gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8] flex items-center justify-center flex-shrink-0 shadow-lg">
+              <MessageCircle className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-[#f0f4f8] mb-2" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-                Frage nicht gefunden?
+              <h3 className="font-display text-xl font-bold text-[#f0f4f8] mb-2">
+                Frage nicht gefunden? 🤖
               </h3>
-              <p className="text-sm text-[#8fa3b3] mb-4">
-                Nutzen Sie unseren AI-Assistenten für individuelle Fragen zu Ihrem Aufenthalt in Deutschland.
+              <p className="text-sm text-[#8fa3b3] mb-4 leading-relaxed">
+                Unser AI-Assistent steht bereit, um Ihre individuellen Fragen zu beantworten. Erhalten Sie personalisierte Hilfe zu Ihrer Situation in Deutschland.
               </p>
               <Button 
                 onClick={() => router.push("/ai-assistant")}
-                className="bg-[#10b981] hover:bg-[#34d399] text-white font-medium"
+                className="bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] hover:from-[#2563eb] hover:to-[#1e40af] text-white font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                Zum AI-Assistenten →
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Zum AI-Assistenten
               </Button>
             </div>
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-    </div>
+    </>
   );
 }
