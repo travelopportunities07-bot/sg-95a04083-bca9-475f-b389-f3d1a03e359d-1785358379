@@ -34,8 +34,23 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await signIn(formData.email, formData.password);
-      router.push(role === "hr" ? "/hr/dashboard" : "/");
+      const { error: signInError, userProfile } = await signIn(formData.email, formData.password);
+      
+      if (signInError) {
+        throw signInError;
+      }
+
+      // Redirect based on actual user role from database
+      if (userProfile) {
+        if (userProfile.role === "hr_manager") {
+          router.push("/hr/dashboard");
+        } else {
+          router.push("/");
+        }
+      } else {
+        // Fallback if profile not found
+        router.push("/");
+      }
     } catch (err: any) {
       setError("Ungültige Anmeldedaten. Bitte überprüfen Sie Ihre E-Mail und Passwort.");
     } finally {

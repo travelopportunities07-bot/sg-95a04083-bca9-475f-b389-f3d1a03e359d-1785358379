@@ -3,37 +3,83 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "next/router";
 
+interface UserProfile {
+  id: string;
+  email: string;
+  role: "worker" | "hr_manager";
+  first_name: string;
+  last_name: string;
+  nationality?: string;
+  arrival_date?: string;
+  job_type?: string;
+  language_level?: string;
+  company?: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; userProfile?: UserProfile | null }>;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) throw error;
+      
+      setUserProfile(data as UserProfile);
+      return data as UserProfile;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      }
+      
       setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      } else {
+        setUserProfile(null);
+      }
+      
       setLoading(false);
     });
 
@@ -49,9 +95,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      return { error: null };
+      // Fetch user profile to get the role
+      if (data.user) {
+        const profile = await fetchUserProfile(data.user.id);
+        return { error: null, userProfile: profile };
+      }
+
+      return { error: null, userProfile: null };
     } catch (error: any) {
-      return { error };
+      return { error, userProfile: null };
     }
   };
 
@@ -77,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         arrival_date: userData.arrival_date,
         job_type: userData.job_type,
         language_level: userData.language_level,
+        company: userData.company,
       });
 
       if (profileError) throw profileError;
@@ -89,16 +142,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUserProfile(null);
     router.push("/auth/login");
+  };
+
+  const refreshUserProfile = async () => {
+    if (user) {
+      await fetchUserProfile(user.id);
+    }
   };
 
   const value = {
     user,
+    userProfile,
     session,
     loading,
     signIn,
     signUp,
     signOut,
+    refreshUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
