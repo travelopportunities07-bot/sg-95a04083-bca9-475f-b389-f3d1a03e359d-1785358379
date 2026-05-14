@@ -86,10 +86,6 @@ export default function Signup() {
       );
       
       setSuccess(true);
-      
-      setTimeout(() => {
-        router.push("/auth/login");
-      }, 3000);
     } catch (err: any) {
       if (err.message?.includes("rate limit")) {
         setError("Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.");
@@ -143,12 +139,25 @@ export default function Signup() {
             <CheckCircle className="w-8 h-8 text-[#34d399]" />
           </div>
           <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-            {t("auth.signup.success")}
+            Compte créé avec succès !
           </h1>
           <p className="text-[#8fa3b3] mb-4">
-            Vous allez être redirigé vers la page de connexion...
+            Un email de vérification a été envoyé à <strong className="text-[#34d399]">{formData.email}</strong>
           </p>
-          <Loader2 className="w-6 h-6 animate-spin text-[#34d399] mx-auto" />
+          <p className="text-[#8fa3b3] text-sm mb-6">
+            Veuillez vérifier votre boîte de réception et cliquer sur le lien de vérification pour activer votre compte.
+          </p>
+          <div className="bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-4">
+            <p className="text-xs text-[#8fa3b3]">
+              💡 <strong>Conseil :</strong> Si vous ne voyez pas l'email, vérifiez votre dossier spam ou courrier indésirable.
+            </p>
+          </div>
+          <Button
+            onClick={() => router.push("/auth/login")}
+            className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium"
+          >
+            Retour à la connexion
+          </Button>
         </Card>
       </div>
     );

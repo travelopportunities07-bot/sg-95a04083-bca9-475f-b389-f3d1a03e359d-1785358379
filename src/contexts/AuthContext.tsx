@@ -29,6 +29,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Dynamic URL Helper
+const getURL = () => {
+  let url = process?.env?.NEXT_PUBLIC_VERCEL_URL ?? 
+           process?.env?.NEXT_PUBLIC_SITE_URL ?? 
+           'http://localhost:3000'
+  
+  if (!url) {
+    url = 'http://localhost:3000';
+  }
+  
+  url = url.startsWith('http') ? url : `https://${url}`
+  url = url.endsWith('/') ? url : `${url}/`
+  
+  return url
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -55,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -67,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -95,7 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      // Fetch user profile to get the role
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id);
         return { error: null, userProfile: profile };
@@ -109,10 +122,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      // 1. Create auth user
+      // 1. Create auth user with email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${getURL()}auth/confirm-email`,
+          data: {
+            role: userData.role,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+          }
+        }
       });
 
       if (authError) throw authError;
