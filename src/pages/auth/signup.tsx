@@ -27,7 +27,7 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [step, setStep] = useState(1);
-  const submittedRef = useRef(false); // Prevent double submission
+  const submittedRef = useRef(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -46,15 +46,12 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prevent double submission
     if (submittedRef.current || loading) {
-      console.log("Signup already in progress, ignoring duplicate request");
       return;
     }
 
     setError("");
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError(t("auth.signup.passwordMismatch"));
       return;
@@ -65,7 +62,6 @@ export default function Signup() {
       return;
     }
 
-    // Mark as submitted and set loading
     submittedRef.current = true;
     setLoading(true);
 
@@ -91,14 +87,10 @@ export default function Signup() {
       
       setSuccess(true);
       
-      // Redirect after 3 seconds
       setTimeout(() => {
         router.push("/auth/login");
       }, 3000);
     } catch (err: any) {
-      console.error("Signup error:", err);
-      
-      // Handle specific errors
       if (err.message?.includes("rate limit")) {
         setError("Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.");
       } else if (err.message?.includes("already registered")) {
@@ -107,7 +99,6 @@ export default function Signup() {
         setError(t("auth.signup.error"));
       }
       
-      // Reset submission flag on error
       submittedRef.current = false;
     } finally {
       setLoading(false);
@@ -116,7 +107,6 @@ export default function Signup() {
 
   const nextStep = () => {
     if (step === 1) {
-      // Validate step 1
       if (!formData.email || !formData.password || !formData.confirmPassword) {
         setError("Veuillez remplir tous les champs");
         return;
@@ -128,7 +118,6 @@ export default function Signup() {
     }
     
     if (step === 2 && formData.role === "worker") {
-      // Validate step 2 for workers
       if (!formData.firstName || !formData.lastName) {
         setError("Veuillez remplir tous les champs");
         return;
@@ -148,36 +137,45 @@ export default function Signup() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md p-8 premium-card fade-in-up text-center">
-          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-success" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
+        <Card className="w-full max-w-md p-8 premium-card fade-in-up text-center bg-[#161c21] border-[rgba(16,185,129,0.3)]">
+          <div className="w-16 h-16 rounded-2xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-[#34d399]" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">{t("auth.signup.success")}</h1>
-          <p className="text-muted-foreground mb-4">
+          <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+            {t("auth.signup.success")}
+          </h1>
+          <p className="text-[#8fa3b3] mb-4">
             Vous allez être redirigé vers la page de connexion...
           </p>
-          <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#34d399] mx-auto" />
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <ThemeSwitch />
         <LanguageSwitch />
       </div>
 
-      <Card className="w-full max-w-md p-8 premium-card fade-in-up">
+      {/* Background gradient */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f2d22] via-[#0a1f17] to-[#071812] opacity-30"></div>
+      </div>
+
+      <Card className="w-full max-w-md p-8 premium-card fade-in-up bg-[#161c21] border-[rgba(16,185,129,0.3)] relative z-10">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl font-bold text-primary">WB</span>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[rgba(16,185,129,0.3)]">
+            <span className="text-2xl font-bold text-white" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>WB</span>
           </div>
-          <h1 className="text-2xl font-bold mb-2">{t("auth.signup.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("auth.signup.subtitle")}</p>
-          <p className="text-xs text-muted-foreground mt-2">
+          <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+            {t("auth.signup.title")}
+          </h1>
+          <p className="text-[#8fa3b3] text-sm">{t("auth.signup.subtitle")}</p>
+          <p className="text-xs text-[#566878] mt-2">
             Schritt {step} von {totalSteps}
           </p>
         </div>
@@ -189,7 +187,7 @@ export default function Signup() {
               <div
                 key={i}
                 className={`h-2 flex-1 rounded-full transition-all ${
-                  i + 1 <= step ? "bg-primary" : "bg-muted"
+                  i + 1 <= step ? "bg-gradient-to-r from-[#10b981] to-[#059669]" : "bg-[#1c242b]"
                 }`}
               />
             ))}
@@ -198,7 +196,7 @@ export default function Signup() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm fade-in">
+            <div className="p-3 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-xl text-[#ef4444] text-sm fade-in">
               {error}
             </div>
           )}
@@ -206,10 +204,12 @@ export default function Signup() {
           {/* Step 1: Basic Info */}
           {step === 1 && (
             <div className="space-y-4 fade-in-up">
-              <h2 className="font-semibold text-lg">{t("auth.signup.step1Title")}</h2>
+              <h2 className="font-semibold text-lg text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+                {t("auth.signup.step1Title")}
+              </h2>
 
               <div className="space-y-2">
-                <Label>Ich bin...</Label>
+                <Label className="text-[#f0f4f8]">Ich bin...</Label>
                 <RadioGroup
                   value={formData.role}
                   onValueChange={(value: "worker" | "hr_manager") =>
@@ -217,15 +217,15 @@ export default function Signup() {
                   }
                   disabled={loading}
                 >
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                  <div className="flex items-center space-x-2 p-3 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl cursor-pointer hover:border-[rgba(16,185,129,0.3)] transition-colors">
                     <RadioGroupItem value="worker" id="worker" />
-                    <Label htmlFor="worker" className="cursor-pointer flex-1">
+                    <Label htmlFor="worker" className="cursor-pointer flex-1 text-[#f0f4f8]">
                       {t("auth.signup.worker")}
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                  <div className="flex items-center space-x-2 p-3 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl cursor-pointer hover:border-[rgba(16,185,129,0.3)] transition-colors">
                     <RadioGroupItem value="hr_manager" id="hr_manager" />
-                    <Label htmlFor="hr_manager" className="cursor-pointer flex-1">
+                    <Label htmlFor="hr_manager" className="cursor-pointer flex-1 text-[#f0f4f8]">
                       {t("auth.signup.hrManager")}
                     </Label>
                   </div>
@@ -233,7 +233,7 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">{t("auth.signup.email")}</Label>
+                <Label htmlFor="email" className="text-[#f0f4f8]">{t("auth.signup.email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -242,11 +242,12 @@ export default function Signup() {
                   required
                   disabled={loading}
                   autoComplete="email"
+                  className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t("auth.signup.password")}</Label>
+                <Label htmlFor="password" className="text-[#f0f4f8]">{t("auth.signup.password")}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -256,11 +257,12 @@ export default function Signup() {
                   disabled={loading}
                   autoComplete="new-password"
                   minLength={6}
+                  className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">{t("auth.signup.confirmPassword")}</Label>
+                <Label htmlFor="confirmPassword" className="text-[#f0f4f8]">{t("auth.signup.confirmPassword")}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -270,13 +272,14 @@ export default function Signup() {
                   disabled={loading}
                   autoComplete="new-password"
                   minLength={6}
+                  className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                 />
               </div>
 
               <Button
                 type="button"
                 onClick={nextStep}
-                className="w-full bg-primary hover:bg-primary/90 btn-premium"
+                className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium"
                 disabled={loading}
               >
                 {t("auth.signup.next")}
@@ -288,11 +291,13 @@ export default function Signup() {
           {/* Step 2: Personal Details */}
           {step === 2 && (
             <div className="space-y-4 fade-in-up">
-              <h2 className="font-semibold text-lg">{t("auth.signup.step2Title")}</h2>
+              <h2 className="font-semibold text-lg text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+                {t("auth.signup.step2Title")}
+              </h2>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">{t("auth.signup.firstName")}</Label>
+                  <Label htmlFor="firstName" className="text-[#f0f4f8]">{t("auth.signup.firstName")}</Label>
                   <Input
                     id="firstName"
                     type="text"
@@ -301,11 +306,12 @@ export default function Signup() {
                     required
                     disabled={loading}
                     autoComplete="given-name"
+                    className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">{t("auth.signup.lastName")}</Label>
+                  <Label htmlFor="lastName" className="text-[#f0f4f8]">{t("auth.signup.lastName")}</Label>
                   <Input
                     id="lastName"
                     type="text"
@@ -314,13 +320,14 @@ export default function Signup() {
                     required
                     disabled={loading}
                     autoComplete="family-name"
+                    className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                   />
                 </div>
               </div>
 
               {formData.role === "hr_manager" && (
                 <div className="space-y-2">
-                  <Label htmlFor="company">{t("auth.signup.company")}</Label>
+                  <Label htmlFor="company" className="text-[#f0f4f8]">{t("auth.signup.company")}</Label>
                   <Input
                     id="company"
                     type="text"
@@ -329,6 +336,7 @@ export default function Signup() {
                     required
                     disabled={loading}
                     autoComplete="organization"
+                    className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                   />
                 </div>
               )}
@@ -338,7 +346,7 @@ export default function Signup() {
                   type="button"
                   variant="outline"
                   onClick={prevStep}
-                  className="flex-1 btn-premium"
+                  className="flex-1 btn-premium bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] hover:border-[rgba(16,185,129,0.3)] hover:bg-[#222c35]"
                   disabled={loading}
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -347,7 +355,7 @@ export default function Signup() {
                 {formData.role === "hr_manager" ? (
                   <Button
                     type="submit"
-                    className="flex-1 bg-primary hover:bg-primary/90 btn-premium"
+                    className="flex-1 bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium"
                     disabled={loading || submittedRef.current}
                   >
                     {loading ? (
@@ -363,7 +371,7 @@ export default function Signup() {
                   <Button
                     type="button"
                     onClick={nextStep}
-                    className="flex-1 bg-primary hover:bg-primary/90 btn-premium"
+                    className="flex-1 bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium"
                     disabled={loading}
                   >
                     {t("auth.signup.next")}
@@ -377,10 +385,12 @@ export default function Signup() {
           {/* Step 3: Work Info (Workers only) */}
           {step === 3 && formData.role === "worker" && (
             <div className="space-y-4 fade-in-up">
-              <h2 className="font-semibold text-lg">{t("auth.signup.step3Title")}</h2>
+              <h2 className="font-semibold text-lg text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+                {t("auth.signup.step3Title")}
+              </h2>
 
               <div className="space-y-2">
-                <Label htmlFor="nationality">{t("auth.signup.nationality")}</Label>
+                <Label htmlFor="nationality" className="text-[#f0f4f8]">{t("auth.signup.nationality")}</Label>
                 <Input
                   id="nationality"
                   type="text"
@@ -389,11 +399,12 @@ export default function Signup() {
                   required
                   disabled={loading}
                   placeholder="France, Maroc, Tunisie..."
+                  className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="arrivalDate">{t("auth.signup.arrivalDate")}</Label>
+                <Label htmlFor="arrivalDate" className="text-[#f0f4f8]">{t("auth.signup.arrivalDate")}</Label>
                 <Input
                   id="arrivalDate"
                   type="date"
@@ -401,20 +412,21 @@ export default function Signup() {
                   onChange={(e) => setFormData({ ...formData, arrivalDate: e.target.value })}
                   required
                   disabled={loading}
+                  className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="languageLevel">{t("auth.signup.languageLevel")}</Label>
+                <Label htmlFor="languageLevel" className="text-[#f0f4f8]">{t("auth.signup.languageLevel")}</Label>
                 <Select
                   value={formData.languageLevel}
                   onValueChange={(value: any) => setFormData({ ...formData, languageLevel: value })}
                   disabled={loading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#1c242b] border-[rgba(255,255,255,0.06)]">
                     <SelectItem value="A1">A1 - Beginner</SelectItem>
                     <SelectItem value="A2">A2 - Elementary</SelectItem>
                     <SelectItem value="B1">B1 - Intermediate</SelectItem>
@@ -425,16 +437,16 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="jobType">{t("auth.signup.jobType")}</Label>
+                <Label htmlFor="jobType" className="text-[#f0f4f8]">{t("auth.signup.jobType")}</Label>
                 <Select
                   value={formData.jobType}
                   onValueChange={(value: any) => setFormData({ ...formData, jobType: value })}
                   disabled={loading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#1c242b] border-[rgba(255,255,255,0.06)]">
                     <SelectItem value="Fachkraft">Fachkraft (Skilled Worker)</SelectItem>
                     <SelectItem value="Azubi">Azubi (Apprentice)</SelectItem>
                   </SelectContent>
@@ -446,7 +458,7 @@ export default function Signup() {
                   type="button"
                   variant="outline"
                   onClick={prevStep}
-                  className="flex-1 btn-premium"
+                  className="flex-1 btn-premium bg-[#1c242b] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] hover:border-[rgba(16,185,129,0.3)] hover:bg-[#222c35]"
                   disabled={loading}
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -454,7 +466,7 @@ export default function Signup() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-primary hover:bg-primary/90 btn-premium"
+                  className="flex-1 bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium"
                   disabled={loading || submittedRef.current}
                 >
                   {loading ? (
@@ -472,9 +484,9 @@ export default function Signup() {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[#8fa3b3]">
             {t("auth.signup.hasAccount")}{" "}
-            <Link href="/auth/login" className="text-primary hover:underline">
+            <Link href="/auth/login" className="text-[#34d399] hover:text-[#10b981] font-medium transition-colors">
               {t("auth.signup.loginLink")}
             </Link>
           </p>
