@@ -27,6 +27,7 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
     { icon: CheckCircle, label: "Aufgaben", path: "/tasks", tooltip: "Aufgaben" },
     { icon: FileText, label: "Dokumente", path: "/documents", tooltip: "Dokumente" },
     { icon: HelpCircle, label: "FAQ", path: "/faq", tooltip: "FAQ" },
+    { icon: Settings, label: "Einstellungen", path: "/settings", tooltip: "Einstellungen" },
   ];
 
   const hrNav: NavItem[] = [
@@ -81,9 +82,9 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
         {/* Bottom Section */}
         <div className="mt-auto flex flex-col items-center gap-2">
           <Link
-            href="/profile"
+            href="/notifications"
             className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-              isActive("/profile")
+              isActive("/notifications")
                 ? "bg-[rgba(16,185,129,0.15)] text-[#10b981]"
                 : "text-[#566878] hover:bg-[#1c242b] hover:text-[#8fa3b3]"
             }`}
