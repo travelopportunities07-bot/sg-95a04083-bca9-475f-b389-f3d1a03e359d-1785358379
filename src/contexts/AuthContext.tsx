@@ -118,19 +118,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authError) throw authError;
       if (!authData.user) throw new Error("No user returned");
 
-      // 2. Create user profile
-      const { error: profileError } = await supabase.from("users").insert({
-        id: authData.user.id,
+      // 2. Create user profile with only the fields that exist in the schema
+      const profileData: any = {
         email,
         role: userData.role,
         first_name: userData.first_name,
         last_name: userData.last_name,
-        nationality: userData.nationality,
-        arrival_date: userData.arrival_date,
-        job_type: userData.job_type,
-        language_level: userData.language_level,
-        company: userData.company,
-      });
+      };
+
+      // Add optional fields only if provided
+      if (userData.nationality) profileData.nationality = userData.nationality;
+      if (userData.arrival_date) profileData.arrival_date = userData.arrival_date;
+      if (userData.job_type) profileData.job_type = userData.job_type;
+      if (userData.language_level) profileData.language_level = userData.language_level;
+      if (userData.company) profileData.company = userData.company;
+
+      const { error: profileError } = await supabase
+        .from("users")
+        .update(profileData)
+        .eq("id", authData.user.id);
 
       if (profileError) throw profileError;
 
