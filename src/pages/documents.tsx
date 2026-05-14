@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { FileText, Upload, Download, Eye, CheckCircle, XCircle, Clock, AlertCircle, Search } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Document {
   id: string;
@@ -18,6 +19,7 @@ interface Document {
 }
 
 export default function DocumentsPage() {
+  const { toast } = useToast();
   const [documents] = useState<Document[]>([
     {
       id: "1",
@@ -77,6 +79,28 @@ export default function DocumentsPage() {
     }
   ]);
 
+  const handleUpload = (docName: string) => {
+    toast({
+      title: "Upload gestartet",
+      description: `${docName} wird hochgeladen...`,
+    });
+    // Hier würde die eigentliche Upload-Logik stehen
+  };
+
+  const handleDownload = (docName: string) => {
+    toast({
+      title: "Download gestartet",
+      description: `${docName} wird heruntergeladen...`,
+    });
+  };
+
+  const handleView = (docName: string) => {
+    toast({
+      title: "Dokument wird geöffnet",
+      description: `${docName} wird in einem neuen Fenster geöffnet...`,
+    });
+  };
+
   const getStatusBadge = (status: Document["status"]) => {
     switch (status) {
       case "approved":
@@ -121,7 +145,10 @@ export default function DocumentsPage() {
         title="Dokumente" 
         subtitle="Verwalte deine wichtigen Dokumente"
         actions={
-          <Button className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-9 px-4 text-sm font-semibold">
+          <Button 
+            onClick={() => handleUpload("Neues Dokument")}
+            className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-9 px-4 text-sm font-semibold"
+          >
             <Upload className="w-4 h-4 mr-2" />
             Hochladen
           </Button>
@@ -257,6 +284,7 @@ export default function DocumentsPage() {
                       <Button 
                         size="sm" 
                         variant="ghost"
+                        onClick={() => handleView(doc.name)}
                         className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
                       >
                         <Eye size={16} />
@@ -264,6 +292,7 @@ export default function DocumentsPage() {
                       <Button 
                         size="sm" 
                         variant="ghost"
+                        onClick={() => handleDownload(doc.name)}
                         className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
                       >
                         <Download size={16} />
@@ -273,6 +302,7 @@ export default function DocumentsPage() {
                   {(doc.status === "missing" || doc.status === "rejected") && (
                     <Button 
                       size="sm" 
+                      onClick={() => handleUpload(doc.name)}
                       className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs font-semibold"
                     >
                       <Upload className="w-3 h-3 mr-1" />

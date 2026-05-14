@@ -3,9 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Trophy, Star, Calendar, CheckCircle, Heart, CreditCard, Globe } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <>
       <Topbar title="Dashboard" />
@@ -102,7 +105,13 @@ export default function Home() {
                 </div>
               </div>
               <span className="text-[11px] font-semibold text-[#10b981] bg-[rgba(16,185,129,0.15)] rounded-full px-2 py-1">+40 XP</span>
-              <Button size="sm" className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs">Starten</Button>
+              <Button 
+                size="sm" 
+                onClick={() => router.push("/workflows/krankenversicherung")}
+                className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs"
+              >
+                Starten
+              </Button>
             </Card>
 
             <Card className="bg-[#161c21] border-white/[0.06] p-4 flex items-center gap-3.5 hover:border-white/[0.10] hover:bg-[#1c242b] transition-all cursor-pointer">
@@ -119,7 +128,13 @@ export default function Home() {
                 </div>
               </div>
               <span className="text-[11px] font-semibold text-[#10b981] bg-[rgba(16,185,129,0.15)] rounded-full px-2 py-1">+30 XP</span>
-              <Button size="sm" className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs">Starten</Button>
+              <Button 
+                size="sm" 
+                onClick={() => router.push("/workflows/bankkonto")}
+                className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs"
+              >
+                Starten
+              </Button>
             </Card>
 
             <Card className="bg-[#161c21] border-white/[0.06] p-4 flex items-center gap-3.5 hover:border-white/[0.10] hover:bg-[#1c242b] transition-all cursor-pointer">
@@ -136,7 +151,13 @@ export default function Home() {
                 </div>
               </div>
               <span className="text-[11px] font-semibold text-[#10b981] bg-[rgba(16,185,129,0.15)] rounded-full px-2 py-1">+30 XP</span>
-              <Button size="sm" className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs">Starten</Button>
+              <Button 
+                size="sm" 
+                onClick={() => router.push("/workflows/deutschkurs")}
+                className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs"
+              >
+                Starten
+              </Button>
             </Card>
           </div>
         </div>

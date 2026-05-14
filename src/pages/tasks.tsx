@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, CreditCard, Home, FileText, Wallet, Globe, Briefcase, CheckCircle, Calendar, Star, Award } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 interface Task {
   id: string;
@@ -19,9 +20,11 @@ interface Task {
   urgent?: boolean;
   completed?: boolean;
   description: string;
+  workflow?: string;
 }
 
 export default function TasksPage() {
+  const router = useRouter();
   const [tasks] = useState<Task[]>([
     {
       id: "1",
@@ -33,7 +36,8 @@ export default function TasksPage() {
       xp: 40,
       urgent: true,
       completed: false,
-      description: "Schließe eine deutsche Krankenversicherung ab (TK, AOK, DAK)"
+      description: "Schließe eine deutsche Krankenversicherung ab (TK, AOK, DAK)",
+      workflow: "/workflows/krankenversicherung"
     },
     {
       id: "2",
@@ -45,7 +49,8 @@ export default function TasksPage() {
       xp: 50,
       urgent: true,
       completed: false,
-      description: "Melde dich innerhalb von 14 Tagen bei deinem Bürgeramt an"
+      description: "Melde dich innerhalb von 14 Tagen bei deinem Bürgeramt an",
+      workflow: "/tasks"
     },
     {
       id: "3",
@@ -56,7 +61,8 @@ export default function TasksPage() {
       deadline: "7 Tage",
       xp: 30,
       completed: false,
-      description: "Eröffne ein deutsches Bankkonto (N26, Deutsche Bank, Sparkasse)"
+      description: "Eröffne ein deutsches Bankkonto (N26, Deutsche Bank, Sparkasse)",
+      workflow: "/workflows/bankkonto"
     },
     {
       id: "4",
@@ -67,7 +73,8 @@ export default function TasksPage() {
       deadline: "14 Tage",
       xp: 30,
       completed: false,
-      description: "Melde dich für einen Integrationskurs oder Deutschkurs an"
+      description: "Melde dich für einen Integrationskurs oder Deutschkurs an",
+      workflow: "/workflows/deutschkurs"
     },
     {
       id: "5",
@@ -78,7 +85,8 @@ export default function TasksPage() {
       deadline: "30 Tage",
       xp: 40,
       completed: false,
-      description: "Beantrage deine Steuer-ID beim Finanzamt"
+      description: "Beantrage deine Steuer-ID beim Finanzamt",
+      workflow: "/tasks"
     },
     {
       id: "6",
@@ -89,7 +97,8 @@ export default function TasksPage() {
       deadline: "Keine Frist",
       xp: 20,
       completed: true,
-      description: "Überprüfe deinen Arbeitsvertrag und verstehe deine Rechte"
+      description: "Überprüfe deinen Arbeitsvertrag und verstehe deine Rechte",
+      workflow: "/tasks"
     }
   ]);
 
@@ -234,6 +243,7 @@ export default function TasksPage() {
                   </span>
                   <Button 
                     size="sm" 
+                    onClick={() => task.workflow && router.push(task.workflow)}
                     className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs font-semibold"
                   >
                     Starten
@@ -311,6 +321,7 @@ export default function TasksPage() {
                   {!task.completed && (
                     <Button 
                       size="sm" 
+                      onClick={() => task.workflow && router.push(task.workflow)}
                       className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs font-semibold"
                     >
                       Starten
