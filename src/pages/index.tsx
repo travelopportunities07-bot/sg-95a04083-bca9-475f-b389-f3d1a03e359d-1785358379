@@ -23,7 +23,9 @@ export default function Home() {
           title="WorkBridgeDe - Administrative Guide for Foreign Workers in Germany"
           description="Complete platform to help foreign workers (Fachkraft/Azubi) manage their administrative tasks in Germany with remote monitoring by HR Managers."
         />
-        <Onboarding onComplete={() => setShowOnboarding(false)} />
+        <div className="bg-[#0a0d0f]">
+          <Onboarding onComplete={() => setShowOnboarding(false)} />
+        </div>
       </LanguageProvider>
     );
   }
@@ -35,7 +37,9 @@ export default function Home() {
           title="WorkBridgeDe - Choose Your Role"
           description="Select your role: Worker or HR Manager to access your dedicated dashboard."
         />
-        <RoleSelector onSelectRole={setUserRole} />
+        <div className="bg-[#0a0d0f]">
+          <RoleSelector onSelectRole={setUserRole} />
+        </div>
       </LanguageProvider>
     );
   }
