@@ -4,28 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
   ArrowLeft,
   Search,
   Home,
   Briefcase,
-  CreditCard,
+  FileText,
   HeartPulse,
   MapPin,
-  HelpCircle,
-  Bot,
-  MessageSquare,
   BookOpen,
-  FileText,
-  Users
+  Users,
+  ChevronDown
 } from "lucide-react";
 import { useRouter } from "next/router";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FAQItem {
   id: string;
@@ -170,19 +160,18 @@ const faqData: FAQItem[] = [
 
 export default function FAQPage() {
   const router = useRouter();
-  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [openQuestions, setOpenQuestions] = useState<Set<string>>(new Set());
 
   const categories = [
-    { id: "all", label: "Alle", icon: BookOpen, color: "bg-primary" },
-    { id: "anmeldung", label: "Anmeldung", icon: Home, color: "bg-accent" },
-    { id: "arbeiten", label: "Arbeiten", icon: Briefcase, color: "bg-success" },
-    { id: "steuern", label: "Steuern", icon: FileText, color: "bg-warning" },
-    { id: "sozialversicherung", label: "Versicherung", icon: Users, color: "bg-secondary" },
-    { id: "aufenthalt", label: "Aufenthalt", icon: FileText, color: "bg-destructive" },
-    { id: "allgemein", label: "Allgemein", icon: BookOpen, color: "bg-muted" }
+    { id: "all", label: "Alle", icon: BookOpen, gradient: "from-emerald-500/10 to-emerald-600/10" },
+    { id: "anmeldung", label: "Anmeldung", icon: Home, gradient: "from-blue-500/10 to-blue-600/10" },
+    { id: "arbeiten", label: "Arbeiten", icon: Briefcase, gradient: "from-emerald-500/10 to-emerald-600/10" },
+    { id: "steuern", label: "Steuern", icon: FileText, gradient: "from-amber-500/10 to-amber-600/10" },
+    { id: "sozialversicherung", label: "Versicherung", icon: HeartPulse, gradient: "from-rose-500/10 to-rose-600/10" },
+    { id: "aufenthalt", label: "Aufenthalt", icon: MapPin, gradient: "from-violet-500/10 to-violet-600/10" },
+    { id: "allgemein", label: "Allgemein", icon: BookOpen, gradient: "from-slate-500/10 to-slate-600/10" }
   ];
 
   const filteredFAQs = faqData.filter(faq => {
@@ -196,23 +185,39 @@ export default function FAQPage() {
     return categories.find(c => c.id === categoryId) || categories[0];
   };
 
+  const toggleQuestion = (id: string) => {
+    setOpenQuestions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground">
-        <div className="container py-6">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-[#0a0d0f] text-[#f0f4f8]">
+      {/* Header with gradient */}
+      <div className="bg-gradient-to-b from-[#0f2d22] via-[#0a1f17] to-[#071812] border-b border-[rgba(16,185,129,0.3)]">
+        <div className="container py-8">
+          <div className="flex items-center gap-4 mb-6">
             <Button
               variant="ghost"
               size="icon"
-              className="text-primary-foreground hover:bg-primary-foreground/20"
+              className="text-[#34d399] hover:bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] rounded-xl"
               onClick={() => router.back()}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">FAQ - Häufige Fragen</h1>
-              <p className="text-sm text-primary-foreground/80">
+              <div className="inline-flex items-center gap-2 bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] rounded-full px-4 py-1.5 mb-3">
+                <span className="w-2 h-2 rounded-full bg-[#10b981]"></span>
+                <span className="text-xs font-medium text-[#34d399] uppercase tracking-wider">Häufige Fragen</span>
+              </div>
+              <h1 className="text-3xl font-bold mb-1" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>FAQ - Deine Antworten</h1>
+              <p className="text-sm text-[#8fa3b3]">
                 Alles über das Leben und Arbeiten in Deutschland
               </p>
             </div>
@@ -220,12 +225,12 @@ export default function FAQPage() {
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary-foreground/60" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#566878]" />
             <Input
               placeholder="Frage suchen..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
+              className="pl-12 bg-[#161c21] border-[rgba(255,255,255,0.06)] text-[#f0f4f8] placeholder:text-[#566878] rounded-xl h-12 focus:border-[rgba(16,185,129,0.3)] focus:ring-[rgba(16,185,129,0.15)]"
             />
           </div>
         </div>
@@ -233,107 +238,133 @@ export default function FAQPage() {
 
       <div className="container py-6 space-y-6">
         {/* Category Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category) => {
             const Icon = category.icon;
             const isSelected = selectedCategory === category.id;
             return (
-              <Button
+              <button
                 key={category.id}
-                variant={isSelected ? "default" : "outline"}
-                size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex-shrink-0 ${isSelected ? category.color : ""}`}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+                  isSelected 
+                    ? 'bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] text-[#34d399]' 
+                    : 'bg-[#161c21] border border-[rgba(255,255,255,0.06)] text-[#8fa3b3] hover:border-[rgba(255,255,255,0.10)] hover:bg-[#1c242b]'
+                }`}
               >
-                <Icon className="w-4 h-4 mr-2" />
+                <Icon className="w-4 h-4" />
                 {category.label}
-              </Button>
+              </button>
             );
           })}
         </div>
 
         {/* Results Count */}
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm">
+          <p className="text-[#8fa3b3]">
             {filteredFAQs.length} {filteredFAQs.length === 1 ? "Frage" : "Fragen"} gefunden
           </p>
           {searchQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={() => setSearchQuery("")}
-              className="text-primary"
+              className="text-[#34d399] hover:text-[#10b981] font-medium"
             >
               Suche löschen
-            </Button>
+            </button>
           )}
         </div>
 
-        {/* FAQ Accordion */}
+        {/* FAQ List */}
         {filteredFAQs.length > 0 ? (
-          <Accordion type="single" collapsible className="space-y-3">
+          <div className="space-y-3">
             {filteredFAQs.map((faq, index) => {
               const categoryData = getCategoryData(faq.category);
+              const isOpen = openQuestions.has(faq.id);
               return (
-                <AccordionItem
+                <div
                   key={faq.id}
-                  value={faq.id}
-                  className="border rounded-lg px-5 py-1 fade-in-up"
+                  className="bg-[#161c21] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden hover:border-[rgba(255,255,255,0.10)] transition-all fade-in-up"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-start gap-3 text-left">
-                      <Badge
-                        variant="secondary"
-                        className={`flex-shrink-0 ${categoryData.color} text-white`}
-                      >
-                        {categoryData.label}
-                      </Badge>
-                      <span className="font-semibold">{faq.question}</span>
+                  <button
+                    onClick={() => toggleQuestion(faq.id)}
+                    className="w-full px-6 py-5 flex items-start gap-4 text-left"
+                  >
+                    <Badge
+                      className={`flex-shrink-0 bg-gradient-to-r ${categoryData.gradient} text-[#8fa3b3] border-[rgba(255,255,255,0.06)] font-medium text-xs px-3 py-1`}
+                    >
+                      {categoryData.label}
+                    </Badge>
+                    <span className="flex-1 font-semibold text-[#f0f4f8]" style={{fontFamily: 'DM Sans, system-ui, sans-serif'}}>
+                      {faq.question}
+                    </span>
+                    <ChevronDown 
+                      className={`w-5 h-5 text-[#566878] transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} 
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-5 text-sm text-[#8fa3b3] leading-relaxed border-t border-[rgba(255,255,255,0.06)] pt-4 fade-in-up">
+                      {faq.answer}
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground pt-4 pb-2">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
+                  )}
+                </div>
               );
             })}
-          </Accordion>
+          </div>
         ) : (
-          <Card className="p-12 text-center">
-            <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Keine Fragen gefunden</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+          <Card className="p-12 text-center bg-[#161c21] border-[rgba(255,255,255,0.06)]">
+            <BookOpen className="w-12 h-12 text-[#566878] mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+              Keine Fragen gefunden
+            </h3>
+            <p className="text-sm text-[#8fa3b3] mb-4">
               Versuchen Sie andere Suchbegriffe oder wählen Sie eine andere Kategorie
             </p>
-            <Button onClick={() => {
-              setSearchQuery("");
-              setSelectedCategory("all");
-            }}>
+            <Button 
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("all");
+              }}
+              className="bg-[rgba(16,185,129,0.15)] hover:bg-[rgba(16,185,129,0.25)] text-[#34d399] border border-[rgba(16,185,129,0.3)]"
+            >
               Filter zurücksetzen
             </Button>
           </Card>
         )}
 
         {/* Help Card */}
-        <Card className="p-6 bg-primary/5 border-primary/20">
-          <h3 className="font-semibold mb-2">Frage nicht gefunden?</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Nutzen Sie unseren AI-Assistenten für individuelle Fragen zu Ihrem Aufenthalt in Deutschland.
-          </p>
-          <Button className="bg-primary hover:bg-primary/90">
-            Zum AI-Assistenten
-          </Button>
-        </Card>
+        <div className="bg-gradient-to-br from-[#0f2d22] to-[#071812] border border-[rgba(16,185,129,0.3)] rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">💬</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-[#f0f4f8] mb-2" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+                Frage nicht gefunden?
+              </h3>
+              <p className="text-sm text-[#8fa3b3] mb-4">
+                Nutzen Sie unseren AI-Assistenten für individuelle Fragen zu Ihrem Aufenthalt in Deutschland.
+              </p>
+              <Button 
+                onClick={() => router.push("/ai-assistant")}
+                className="bg-[#10b981] hover:bg-[#34d399] text-white font-medium"
+              >
+                Zum AI-Assistenten →
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Floating AI Assistant Button */}
-      <Button
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 z-50 btn-premium animate-bounce"
-        onClick={() => router.push("/ai-assistant")}
-      >
-        <Bot className="w-6 h-6" />
-      </Button>
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
