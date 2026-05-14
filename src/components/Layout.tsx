@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings } from "lucide-react";
+import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,7 +9,7 @@ interface LayoutProps {
 }
 
 interface NavItem {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   path: string;
   tooltip: string;
