@@ -8,20 +8,28 @@ interface LayoutProps {
   view?: "employee" | "hr";
 }
 
+interface NavItem {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  path: string;
+  tooltip: string;
+  badge?: number;
+}
+
 export function Layout({ children, view = "employee" }: LayoutProps) {
   const router = useRouter();
   const [notificationCount] = useState(2);
 
   const isActive = (path: string) => router.pathname === path;
 
-  const employeeNav = [
+  const employeeNav: NavItem[] = [
     { icon: Home, label: "Home", path: "/", tooltip: "Home" },
     { icon: CheckCircle, label: "Aufgaben", path: "/tasks", tooltip: "Aufgaben" },
     { icon: FileText, label: "Dokumente", path: "/documents", tooltip: "Dokumente" },
     { icon: HelpCircle, label: "FAQ", path: "/faq", tooltip: "FAQ" },
   ];
 
-  const hrNav = [
+  const hrNav: NavItem[] = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/hr/dashboard", tooltip: "Dashboard" },
     { icon: Users, label: "Mitarbeiter", path: "/hr/employees", tooltip: "Mitarbeiter" },
     { icon: Clock, label: "Erinnerungen", path: "/hr/reminders", tooltip: "Erinnerungen", badge: 3 },
