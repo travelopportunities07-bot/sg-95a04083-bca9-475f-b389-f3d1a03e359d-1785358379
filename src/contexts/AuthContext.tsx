@@ -22,7 +22,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null; userProfile?: UserProfile | null }>;
-  signUp: (email: string, password: string, userData: any) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, userData: any) => Promise<{ error: Error | null; data?: { user: User } | null }>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
 }
@@ -172,9 +172,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (profileError) throw profileError;
 
-      return { error: null };
+      return { error: null, data: { user: authData.user } };
     } catch (error: any) {
-      return { error };
+      return { error, data: null };
     }
   };
 
