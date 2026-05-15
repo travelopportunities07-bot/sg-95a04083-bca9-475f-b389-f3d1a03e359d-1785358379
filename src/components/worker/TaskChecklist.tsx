@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { notifications } from "@/lib/notifications";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { useAuth } from "@/contexts/AuthContext";
+import { markTaskAsCompleted, updateTaskStatus } from "@/services/taskService";
 import {
   Accordion,
   AccordionContent,
@@ -17,7 +20,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   HeartPulse,
   Globe,
@@ -55,10 +69,14 @@ interface Category {
 }
 
 export function TaskChecklist() {
+  const { user } = useAuth();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "open" | "completed" | "urgent">("all");
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(["i1"]));
+  const [confirmCompleteTask, setConfirmCompleteTask] = useState<Task | null>(null);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadingForTask, setUploadingForTask] = useState<Task | null>(null);
 
   const categories: Category[] = [
     {
@@ -305,6 +323,45 @@ export function TaskChecklist() {
     setCompletedTasks(newCompleted);
   };
 
+  const handleMarkAsCompleted = async (task: Task) => {
+    setConfirmCompleteTask(task);
+  };
+
+  const confirmMarkCompleted = async () => {
+    if (!confirmCompleteTask) return;
+    
+    const newCompleted = new Set(completedTasks);
+    newCompleted.add(confirmCompleteTask.id);
+    setCompletedTasks(newCompleted);
+    triggerConfetti();
+    
+    // Show toast notification
+    notifications.taskCompleted(confirmCompleteTask.title, confirmCompleteTask.xp);
+    
+    // Update in database if user is logged in
+    if (user?.id) {
+      await markTaskAsCompleted(confirmCompleteTask.id);
+    }
+    
+    setConfirmCompleteTask(null);
+  };
+
+  const handleStartWorkflow = (task: Task) => {
+    // Open workflow page or show upload dialog
+    setUploadingForTask(task);
+    setShowUploadDialog(true);
+  };
+
+  const handleUploadComplete = (documentId: string) => {
+    notifications.success("Dokument erfolgreich hochgeladen.");
+    setShowUploadDialog(false);
+    setUploadingForTask(null);
+  };
+
+  const handleUploadError = (error: string) => {
+    notifications.error(error);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -403,10 +460,9 @@ export function TaskChecklist() {
                   {category.tasks.map((task, taskIndex) => (
                     <Card 
                       key={task.id}
-                      className={`p-4 cursor-pointer premium-card-interactive ripple-effect ${
+                      className={`p-4 premium-card-interactive ripple-effect ${
                         task.urgent && !completedTasks.has(task.id) ? "border-l-4 border-l-warning shadow-warning/10" : ""
                       } ${completedTasks.has(task.id) ? "bg-success/5 border-success/20" : ""}`}
-                      onClick={() => setSelectedTask(task)}
                       style={{ animationDelay: `${0.1 * taskIndex}s` }}
                     >
                       <div className="flex items-start gap-3">
@@ -423,7 +479,7 @@ export function TaskChecklist() {
                             <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
                           )}
                         </button>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0" onClick={() => setSelectedTask(task)}>
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <h4 className={`font-semibold text-sm ${completedTasks.has(task.id) ? "line-through text-muted-foreground" : ""}`}>
                               {task.title}
@@ -442,6 +498,32 @@ export function TaskChecklist() {
                               <Badge className="bg-warning text-xs animate-pulse">Urgent</Badge>
                             )}
                           </div>
+                        </div>
+                        <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                          {!completedTasks.has(task.id) && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStartWorkflow(task)}
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
+                              >
+                                Starten
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleMarkAsCompleted(task)}
+                                className="border-success text-success hover:bg-success/10 whitespace-nowrap"
+                              >
+                                ✓ Erledigt
+                              </Button>
+                            </>
+                          )}
+                          {completedTasks.has(task.id) && (
+                            <Badge className="bg-success text-success-foreground whitespace-nowrap">
+                              ✅ Erledigt
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -511,21 +593,94 @@ export function TaskChecklist() {
               <Button 
                 className="flex-1 bg-primary hover:bg-primary/90 btn-premium"
                 onClick={() => {
+                  setSelectedTask(null);
+                  if (selectedTask) handleStartWorkflow(selectedTask);
+                }}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Starten
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 btn-premium border-success text-success hover:bg-success/10"
+                onClick={() => {
                   if (selectedTask) {
-                    handleTaskToggle(selectedTask.id);
+                    handleMarkAsCompleted(selectedTask);
                     setSelectedTask(null);
                   }
                 }}
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                {selectedTask && completedTasks.has(selectedTask.id) ? "Als offen markieren" : "Als erledigt markieren"}
-              </Button>
-              <Button variant="outline" className="flex-1 btn-premium">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                HR kontaktieren
+                ✓ Erledigt
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog for Marking as Completed */}
+      <AlertDialog open={!!confirmCompleteTask} onOpenChange={() => setConfirmCompleteTask(null)}>
+        <AlertDialogContent className="scale-in">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aufgabe als erledigt markieren?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sind Sie sicher, dass diese Aufgabe abgeschlossen ist?
+              <br />
+              <strong className="text-foreground mt-2 block">{confirmCompleteTask?.title}</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmMarkCompleted}
+              className="bg-success hover:bg-success/90 text-success-foreground"
+            >
+              ✓ Als erledigt markieren
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-md scale-in">
+          <DialogHeader>
+            <DialogTitle>Dokumente hochladen</DialogTitle>
+            <DialogDescription>
+              Laden Sie die erforderlichen Dokumente für diese Aufgabe hoch.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {uploadingForTask && user?.id && (
+            <div className="space-y-4">
+              <DocumentUpload
+                userId={user.id}
+                category={uploadingForTask.id}
+                taskId={uploadingForTask.id}
+                onUploadComplete={handleUploadComplete}
+                onUploadError={handleUploadError}
+              />
+              
+              {uploadingForTask.requiredDocs.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Erforderliche Dokumente:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    {uploadingForTask.requiredDocs.map((doc, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        {doc}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+              Schließen
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

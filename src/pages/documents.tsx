@@ -5,8 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { FileText, Upload, Download, Eye, CheckCircle, XCircle, Clock, AlertCircle, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { DocumentViewer } from "@/components/DocumentViewer";
+import { getUserDocuments, downloadDocument } from "@/services/documentService";
+import type { Document as DocType } from "@/services/documentService";
 
 interface Document {
   id: string;
@@ -20,64 +25,73 @@ interface Document {
 
 export default function DocumentsPage() {
   const { toast } = useToast();
-  const [documents] = useState<Document[]>([
-    {
-      id: "1",
-      name: "Reisepass",
-      category: "Identität",
-      status: "approved",
-      uploadedAt: "2024-03-15",
-      size: "2.4 MB",
-      validUntil: "2029-03-15"
-    },
-    {
-      id: "2",
-      name: "Arbeitsvertrag",
-      category: "Arbeit",
-      status: "approved",
-      uploadedAt: "2024-03-10",
-      size: "1.8 MB",
-      validUntil: "2027-03-10"
-    },
-    {
-      id: "3",
-      name: "Krankenversicherung",
-      category: "Gesundheit",
-      status: "pending",
-      uploadedAt: "2024-04-05",
-      size: "3.2 MB"
-    },
-    {
-      id: "4",
-      name: "Mietvertrag",
-      category: "Wohnung",
-      status: "approved",
-      uploadedAt: "2024-03-20",
-      size: "4.1 MB"
-    },
-    {
-      id: "5",
-      name: "Steuernummer",
-      category: "Steuern",
-      status: "missing"
-    },
-    {
-      id: "6",
-      name: "Bankkonto Bestätigung",
-      category: "Finanzen",
-      status: "rejected",
-      uploadedAt: "2024-04-01",
-      size: "1.2 MB"
-    },
-    {
-      id: "7",
-      name: "Sprachzertifikat",
-      category: "Integration",
-      status: "pending",
-      uploadedAt: "2024-04-08",
-      size: "2.8 MB"
+  const { user } = useAuth();
+  const [documents, setDocuments] = useState<DocType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [viewingDocument, setViewingDocument] = useState<DocType | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadDocuments();
     }
-  ]);
+  }, [user]);
+
+  const loadDocuments = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    const { data, error } = await getUserDocuments(user.id);
+    
+    if (error) {
+      toast({
+        title: "Fehler",
+        description: "Dokumente konnten nicht geladen werden.",
+        variant: "destructive"
+      });
+    } else if (data) {
+      setDocuments(data);
+    }
+    
+    setLoading(false);
+  };
+
+  const handleUploadComplete = async (documentId: string) => {
+    toast({
+      title: "Erfolgreich",
+      description: "Dokument erfolgreich hochgeladen.",
+    });
+    setShowUploadDialog(false);
+    await loadDocuments();
+  };
+
+  const handleUploadError = (error: string) => {
+    toast({
+      title: "Fehler",
+      description: error,
+      variant: "destructive"
+    });
+  };
+
+  const handleDownload = async (doc: DocType) => {
+    const { error } = await downloadDocument(doc.file_path, doc.file_name);
+    if (error) {
+      toast({
+        title: "Fehler",
+        description: "Dokument konnte nicht heruntergeladen werden.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Download gestartet",
+        description: `${doc.file_name} wird heruntergeladen...`,
+      });
+    }
+  };
+
+  const handleView = (doc: DocType) => {
+    setViewingDocument(doc);
+  };
 
   const handleUpload = (docName: string) => {
     toast({
@@ -85,20 +99,6 @@ export default function DocumentsPage() {
       description: `${docName} wird hochgeladen...`,
     });
     // Hier würde die eigentliche Upload-Logik stehen
-  };
-
-  const handleDownload = (docName: string) => {
-    toast({
-      title: "Download gestartet",
-      description: `${docName} wird heruntergeladen...`,
-    });
-  };
-
-  const handleView = (docName: string) => {
-    toast({
-      title: "Dokument wird geöffnet",
-      description: `${docName} wird in einem neuen Fenster geöffnet...`,
-    });
   };
 
   const getStatusBadge = (status: Document["status"]) => {
