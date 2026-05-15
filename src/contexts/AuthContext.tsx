@@ -60,12 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        throw error;
+      }
       
       setUserProfile(data as UserProfile);
       return data as UserProfile;
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
+    } catch (error: any) {
+      console.error("Error in fetchUserProfile:", error);
       return null;
     }
   };
@@ -107,15 +110,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Sign in error:", error);
+        return { error, userProfile: null };
+      }
 
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id);
+        if (!profile) {
+          return { 
+            error: new Error("Failed to fetch user profile. Please try again."), 
+            userProfile: null 
+          };
+        }
         return { error: null, userProfile: profile };
       }
 
-      return { error: null, userProfile: null };
+      return { error: new Error("No user data returned"), userProfile: null };
     } catch (error: any) {
+      console.error("Error in signIn:", error);
       return { error, userProfile: null };
     }
   };
