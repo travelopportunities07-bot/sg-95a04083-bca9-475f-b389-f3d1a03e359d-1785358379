@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon } from "lucide-react";
+import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon, DollarSign } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -27,11 +27,11 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
     { icon: CheckCircle, label: "Aufgaben", path: "/tasks", tooltip: "Aufgaben" },
     { icon: FileText, label: "Dokumente", path: "/documents", tooltip: "Dokumente" },
     { icon: HelpCircle, label: "FAQ", path: "/faq", tooltip: "FAQ" },
-    { icon: Settings, label: "Einstellungen", path: "/settings", tooltip: "Einstellungen" },
+    { icon: DollarSign, label: "Pricing", path: "/pricing", tooltip: "Pricing" },
   ];
 
   const hrNav: NavItem[] = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/hr/dashboard", tooltip: "Dashboard" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/hr", tooltip: "Dashboard" },
     { icon: Users, label: "Mitarbeiter", path: "/hr/employees", tooltip: "Mitarbeiter" },
     { icon: Clock, label: "Erinnerungen", path: "/hr/reminders", tooltip: "Erinnerungen", badge: 3 },
     { icon: Settings, label: "Einstellungen", path: "/hr/settings", tooltip: "Einstellungen" },
@@ -46,9 +46,13 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
         {/* Logo */}
         <Link 
           href="/"
-          className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#059669] to-[#10b981] flex items-center justify-center font-display font-bold text-base text-white mb-4 cursor-pointer hover:scale-105 transition-transform"
+          className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
         >
-          W
+          <img 
+            src="/workbridge_Logo.png" 
+            alt="WorkBridge" 
+            className="w-full h-full object-contain"
+          />
         </Link>
 
         {/* Nav Items */}
