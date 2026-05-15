@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -15,240 +15,284 @@ export type Database = {
   }
   public: {
     Tables: {
-      badges: {
-        Row: {
-          code: string
-          condition_type: string
-          condition_value: number | null
-          created_at: string | null
-          description_de: string | null
-          description_en: string | null
-          icon: string | null
-          id: string
-          name_de: string
-          name_en: string
-        }
-        Insert: {
-          code: string
-          condition_type: string
-          condition_value?: number | null
-          created_at?: string | null
-          description_de?: string | null
-          description_en?: string | null
-          icon?: string | null
-          id?: string
-          name_de: string
-          name_en: string
-        }
-        Update: {
-          code?: string
-          condition_type?: string
-          condition_value?: number | null
-          created_at?: string | null
-          description_de?: string | null
-          description_en?: string | null
-          icon?: string | null
-          id?: string
-          name_de?: string
-          name_en?: string
-        }
-        Relationships: []
-      }
       companies: {
         Row: {
+          address: string | null
+          city: string | null
+          country: string | null
           created_at: string | null
           id: string
+          industry: string | null
           name: string
+          size: string | null
+          updated_at: string | null
         }
         Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           id?: string
+          industry?: string | null
           name: string
+          size?: string | null
+          updated_at?: string | null
         }
         Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           id?: string
+          industry?: string | null
           name?: string
+          size?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       documents: {
         Row: {
-          doc_type: string
-          expires_at: string | null
+          category: string
+          created_at: string | null
           file_name: string
-          file_url: string
+          file_path: string
+          file_size: number
+          file_type: string
           id: string
           rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string | null
-          uploaded_at: string | null
+          task_id: string | null
+          updated_at: string | null
           user_id: string
-          validated_at: string | null
-          validated_by: string | null
         }
         Insert: {
-          doc_type: string
-          expires_at?: string | null
+          category: string
+          created_at?: string | null
           file_name: string
-          file_url: string
+          file_path: string
+          file_size: number
+          file_type: string
           id?: string
           rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
-          uploaded_at?: string | null
+          task_id?: string | null
+          updated_at?: string | null
           user_id: string
-          validated_at?: string | null
-          validated_by?: string | null
         }
         Update: {
-          doc_type?: string
-          expires_at?: string | null
+          category?: string
+          created_at?: string | null
           file_name?: string
-          file_url?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
           id?: string
           rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
-          uploaded_at?: string | null
+          task_id?: string | null
+          updated_at?: string | null
           user_id?: string
-          validated_at?: string | null
-          validated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          code: string
+          company_id: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          first_name: string | null
+          id: string
+          invited_by: string | null
+          last_name: string | null
+          role: string | null
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          code: string
+          company_id?: string | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          first_name?: string | null
+          id?: string
+          invited_by?: string | null
+          last_name?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          code?: string
+          company_id?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invited_by?: string | null
+          last_name?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "documents_validated_by_fkey"
-            columns: ["validated_by"]
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
       profiles: {
         Row: {
+          arrival_date: string | null
           avatar_url: string | null
+          company_id: string | null
           created_at: string | null
           email: string | null
+          first_name: string | null
           full_name: string | null
+          hr_manager_id: string | null
           id: string
+          job_type: string | null
+          language_level: string | null
+          last_name: string | null
+          nationality: string | null
+          phone: string | null
+          role: string | null
           updated_at: string | null
         }
         Insert: {
+          arrival_date?: string | null
           avatar_url?: string | null
+          company_id?: string | null
           created_at?: string | null
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
+          hr_manager_id?: string | null
           id: string
+          job_type?: string | null
+          language_level?: string | null
+          last_name?: string | null
+          nationality?: string | null
+          phone?: string | null
+          role?: string | null
           updated_at?: string | null
         }
         Update: {
+          arrival_date?: string | null
           avatar_url?: string | null
+          company_id?: string | null
           created_at?: string | null
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
+          hr_manager_id?: string | null
           id?: string
+          job_type?: string | null
+          language_level?: string | null
+          last_name?: string | null
+          nationality?: string | null
+          phone?: string | null
+          role?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      reminder_templates: {
-        Row: {
-          category: string | null
-          code: string
-          created_at: string | null
-          id: string
-          message_de: string
-          message_en: string
-        }
-        Insert: {
-          category?: string | null
-          code: string
-          created_at?: string | null
-          id?: string
-          message_de: string
-          message_en: string
-        }
-        Update: {
-          category?: string | null
-          code?: string
-          created_at?: string | null
-          id?: string
-          message_de?: string
-          message_en?: string
-        }
-        Relationships: []
-      }
-      reminders: {
-        Row: {
-          action_taken_at: string | null
-          channel: string | null
-          id: string
-          message: string
-          priority: string | null
-          read_at: string | null
-          recipient_id: string
-          related_doc_type: string | null
-          related_task_id: string | null
-          sender_id: string
-          sent_at: string | null
-          template_id: string | null
-          type: string | null
-        }
-        Insert: {
-          action_taken_at?: string | null
-          channel?: string | null
-          id?: string
-          message: string
-          priority?: string | null
-          read_at?: string | null
-          recipient_id: string
-          related_doc_type?: string | null
-          related_task_id?: string | null
-          sender_id: string
-          sent_at?: string | null
-          template_id?: string | null
-          type?: string | null
-        }
-        Update: {
-          action_taken_at?: string | null
-          channel?: string | null
-          id?: string
-          message?: string
-          priority?: string | null
-          read_at?: string | null
-          recipient_id?: string
-          related_doc_type?: string | null
-          related_task_id?: string | null
-          sender_id?: string
-          sent_at?: string | null
-          template_id?: string | null
-          type?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "reminders_recipient_id_fkey"
-            columns: ["recipient_id"]
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reminders_related_task_id_fkey"
-            columns: ["related_task_id"]
+            foreignKeyName: "profiles_hr_manager_id_fkey"
+            columns: ["hr_manager_id"]
             isOneToOne: false
-            referencedRelation: "user_tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reminders_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -256,193 +300,52 @@ export type Database = {
       tasks: {
         Row: {
           category: string
+          completed_at: string | null
           created_at: string | null
-          deadline_offset_days: number
-          description_de: string | null
-          description_en: string | null
-          guide_steps: Json | null
+          description: string | null
+          due_date: string | null
           id: string
           priority: string | null
-          required_documents: string[] | null
-          title_de: string
-          title_en: string
-          xp_value: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          xp_reward: number | null
         }
         Insert: {
           category: string
+          completed_at?: string | null
           created_at?: string | null
-          deadline_offset_days: number
-          description_de?: string | null
-          description_en?: string | null
-          guide_steps?: Json | null
+          description?: string | null
+          due_date?: string | null
           id?: string
           priority?: string | null
-          required_documents?: string[] | null
-          title_de: string
-          title_en: string
-          xp_value?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          xp_reward?: number | null
         }
         Update: {
           category?: string
+          completed_at?: string | null
           created_at?: string | null
-          deadline_offset_days?: number
-          description_de?: string | null
-          description_en?: string | null
-          guide_steps?: Json | null
+          description?: string | null
+          due_date?: string | null
           id?: string
           priority?: string | null
-          required_documents?: string[] | null
-          title_de?: string
-          title_en?: string
-          xp_value?: number | null
-        }
-        Relationships: []
-      }
-      user_badges: {
-        Row: {
-          badge_id: string
-          earned_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          badge_id: string
-          earned_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          badge_id?: string
-          earned_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_badges_badge_id_fkey"
-            columns: ["badge_id"]
-            isOneToOne: false
-            referencedRelation: "badges"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_badges_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_tasks: {
-        Row: {
-          completed_at: string | null
-          created_at: string | null
-          deadline: string | null
-          id: string
-          reminder_sent_count: number | null
-          status: string | null
-          task_id: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string | null
-          deadline?: string | null
-          id?: string
-          reminder_sent_count?: number | null
           status?: string | null
-          task_id: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string | null
-          deadline?: string | null
-          id?: string
-          reminder_sent_count?: number | null
-          status?: string | null
-          task_id?: string
+          title?: string
           updated_at?: string | null
           user_id?: string
+          xp_reward?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "user_tasks_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_tasks_user_id_fkey"
+            foreignKeyName: "tasks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          arrival_date: string | null
-          avatar_url: string | null
-          company_id: string | null
-          created_at: string | null
-          email: string
-          first_name: string
-          hr_manager_id: string | null
-          id: string
-          job_type: string | null
-          language_level: string | null
-          last_name: string
-          nationality: string | null
-          role: string
-          updated_at: string | null
-          xp_points: number | null
-        }
-        Insert: {
-          arrival_date?: string | null
-          avatar_url?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          email: string
-          first_name: string
-          hr_manager_id?: string | null
-          id: string
-          job_type?: string | null
-          language_level?: string | null
-          last_name: string
-          nationality?: string | null
-          role: string
-          updated_at?: string | null
-          xp_points?: number | null
-        }
-        Update: {
-          arrival_date?: string | null
-          avatar_url?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          email?: string
-          first_name?: string
-          hr_manager_id?: string | null
-          id?: string
-          job_type?: string | null
-          language_level?: string | null
-          last_name?: string
-          nationality?: string | null
-          role?: string
-          updated_at?: string | null
-          xp_points?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "users_hr_manager_id_fkey"
-            columns: ["hr_manager_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
