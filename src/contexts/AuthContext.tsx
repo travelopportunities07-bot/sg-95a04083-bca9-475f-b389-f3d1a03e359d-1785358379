@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: existingProfile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("id", data.user.id)
+        .eq("id", authData.user.id)
         .single();
 
       if (existingProfile) {
@@ -152,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // 2. Create user profile with only the fields that exist in the schema
       const profileData: any = {
+        id: authData.user.id,
         email,
         role: userData.role,
         first_name: userData.first_name,
@@ -166,9 +167,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userData.company) profileData.company = userData.company;
 
       const { error: profileError } = await supabase
-        .from("users")
-        .update(profileData)
-        .eq("id", authData.user.id);
+        .from("profiles")
+        .insert(profileData);
 
       if (profileError) throw profileError;
 

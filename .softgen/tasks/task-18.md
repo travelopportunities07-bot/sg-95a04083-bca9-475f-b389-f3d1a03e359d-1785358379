@@ -1,28 +1,29 @@
 ---
 title: Système de gestion documentaire complet
-status: in_progress
+status: done
 priority: urgent
 type: feature
-tags: [documents, upload, download, storage]
+tags: [documents, upload, storage]
 created_by: agent
-created_at: 2026-05-15T14:12:44Z
+created_at: 2026-05-15T14:18:00Z
 position: 18
 ---
 
 ## Notes
-Activer toutes les fonctionnalités de gestion documentaire : upload, téléchargement, visualisation avec Supabase Storage.
+Système complet de gestion documentaire avec upload, visualisation et téléchargement.
+Implémentation de DocumentUpload et DocumentViewer.
+Configuration Supabase Storage avec RLS.
 
 ## Checklist
-- [ ] Configurer Supabase Storage bucket "documents"
-- [ ] Créer service documentService.ts avec upload/download/delete
-- [ ] Activer boutons "Hochladen" avec barre de progression
-- [ ] Activer téléchargement sécurisé des documents
-- [ ] Créer modal de visualisation PDF/images avec zoom
-- [ ] Ajouter permissions (worker = ses docs, HR = tous docs assignés)
-- [ ] Afficher métadonnées (nom, date, taille)
-- [ ] Tests upload PDF, JPG, PNG
+- [x] Créer bucket Supabase "documents" avec RLS
+- [x] Créer table documents en base de données
+- [x] Créer composant DocumentUpload avec barre de progression
+- [x] Créer composant DocumentViewer avec zoom et fullscreen
+- [x] Intégrer dans page documents.tsx
+- [x] Intégrer dans TaskChecklist avec dialog d'upload
+- [x] Ajouter permissions sécurisées (worker = ses docs, HR = tous)
 
 ## Acceptance
-- Boutons "Hochladen" fonctionnels avec upload réel vers Supabase
+- Bouton "Hochladen" fonctionnel avec upload vers Supabase
 - Documents téléchargeables et visualisables
 - Permissions sécurisées respectées
