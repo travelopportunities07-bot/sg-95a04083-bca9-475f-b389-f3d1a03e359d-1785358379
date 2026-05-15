@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import Layout from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import { SEO } from "@/components/SEO";
 
 export default function PricingPage() {
