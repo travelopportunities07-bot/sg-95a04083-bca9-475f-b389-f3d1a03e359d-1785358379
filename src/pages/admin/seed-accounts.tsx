@@ -32,7 +32,7 @@ export default function SeedAccounts() {
       if (companyError) throw companyError;
 
       // 2. Créer le compte HR Manager
-      const hrEmail = "hr@workbridge.demo";
+      const hrEmail = "hr.manager@workbridge-demo.com";
       const hrPassword = "Demo123!HR";
 
       const { data: hrAuth, error: hrAuthError } = await supabase.auth.signUp({
@@ -52,7 +52,7 @@ export default function SeedAccounts() {
       if (hrAuthError) throw hrAuthError;
 
       // 3. Créer le compte Worker
-      const workerEmail = "worker@workbridge.demo";
+      const workerEmail = "worker.demo@workbridge-demo.com";
       const workerPassword = "Demo123!Worker";
 
       const { data: workerAuth, error: workerAuthError } = await supabase.auth.signUp({
@@ -155,7 +155,7 @@ export default function SeedAccounts() {
                     <CardTitle className="text-base">👔 HR Manager</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-1 text-sm">
-                    <p><strong>Email:</strong> hr@workbridge.demo</p>
+                    <p><strong>Email:</strong> hr.manager@workbridge-demo.com</p>
                     <p><strong>Password:</strong> Demo123!HR</p>
                     <p><strong>Rôle:</strong> HR Manager</p>
                     <p><strong>Accès:</strong> Dashboard HR, gestion employés, invitations</p>
@@ -167,7 +167,7 @@ export default function SeedAccounts() {
                     <CardTitle className="text-base">👤 Worker (Fachkraft)</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-1 text-sm">
-                    <p><strong>Email:</strong> worker@workbridge.demo</p>
+                    <p><strong>Email:</strong> worker.demo@workbridge-demo.com</p>
                     <p><strong>Password:</strong> Demo123!Worker</p>
                     <p><strong>Nom:</strong> Max Mustermann</p>
                     <p><strong>Rôle:</strong> Fachkraft (France)</p>
