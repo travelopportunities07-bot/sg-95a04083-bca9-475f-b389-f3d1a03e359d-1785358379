@@ -36,7 +36,7 @@ export default function InvitePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user?.company_id) {
+    if (!user || !("company_id" in user)) {
       toast({
         title: "Erreur",
         description: "Aucune entreprise associée",
@@ -50,7 +50,7 @@ export default function InvitePage() {
     try {
       const { data, error, inviteLink: link } = await createInvitation(
         formData.email,
-        user.company_id,
+        (user as any).company_id,
         user.id,
         formData.firstName,
         formData.lastName,

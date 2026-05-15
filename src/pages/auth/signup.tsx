@@ -111,7 +111,7 @@ export default function Signup() {
 
     try {
       // Sign up user
-      const { data: authData } = await signUp(
+      const result = await signUp(
         formData.email,
         formData.password,
         {
@@ -131,7 +131,7 @@ export default function Signup() {
       );
 
       // If invitation exists, link user to company and HR manager
-      if (invitation && authData?.user) {
+      if (invitation && result?.data?.user) {
         // Update profile with company and HR manager
         const { error: updateError } = await supabase
           .from("profiles")
@@ -139,14 +139,14 @@ export default function Signup() {
             company_id: invitation.company_id,
             hr_manager_id: invitation.invited_by
           })
-          .eq("id", authData.user.id);
+          .eq("id", result.data.user.id);
 
         if (updateError) {
           console.error("Error linking to company:", updateError);
         }
 
         // Mark invitation as accepted
-        await acceptInvitation(invitation.id, authData.user.id);
+        await acceptInvitation(invitation.id, result.data.user.id);
       }
       
       setSuccess(true);

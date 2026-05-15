@@ -21,7 +21,9 @@ import {
   Trash2,
   Clock,
   CheckCircle,
-  XOctagon
+  XOctagon,
+  FileX,
+  ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { getCompanyInvitations, resendInvitation, deleteInvitation } from "@/services/invitationService";
@@ -48,20 +50,26 @@ export function HRDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  // Reminder dialog state
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
+  const [selectedAlert, setSelectedAlert] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState("");
+  const [reminderMessage, setReminderMessage] = useState("");
 
   // Load invitations
   useEffect(() => {
-    if (user?.company_id) {
+    if (user && "company_id" in user) {
       loadInvitations();
     }
-  }, [user?.company_id]);
+  }, [user]);
 
   const loadInvitations = async () => {
-    if (!user?.company_id) return;
+    if (!user || !("company_id" in user)) return;
     
     setLoadingInvitations(true);
     try {
-      const { data, error } = await getCompanyInvitations(user.company_id);
+      const { data, error } = await getCompanyInvitations((user as any).company_id);
       if (error) throw error;
       setInvitations(data || []);
     } catch (error: any) {
