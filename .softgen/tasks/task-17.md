@@ -1,28 +1,20 @@
 ---
-title: Fix Navigation - Back Buttons and Worker Pages
+title: "Fix Navigation - Back Buttons and Worker Pages"
 status: done
 priority: urgent
 type: bug
-tags: [navigation, routing, worker]
+tags: ["navigation", "bug-fix", "worker-pages"]
 created_by: agent
-created_at: 2026-05-14T01:42:00Z
+created_at: 2026-05-15T14:52:42Z
 position: 17
 ---
 
 ## Notes
-Two critical navigation fixes:
-1. Update all ArrowLeft back buttons to use router.back() instead of hardcoded routes
-2. Create dedicated pages for /tasks and /documents (currently accessed from bottom nav but pages don't exist)
+User reported navigation issues:
+1. Back buttons (ArrowLeft) not working - clicking takes to previous route instead of browser history
+2. /tasks and /documents pages missing - bottom nav links broken
 
-Files to update with router.back():
-- profile.tsx
-- faq.tsx
-- workflows (krankenversicherung, bankkonto, deutschkurs)
-- hr pages (employees, reminders, settings)
-
-Pages to create:
-- /tasks → TaskChecklist component
-- /documents → DocumentManager component
+Root cause: Back buttons using `router.push("/")` instead of `router.back()`. Worker pages need to be created with full TaskChecklist and DocumentManager components.
 
 ## Checklist
 - [x] Update profile.tsx ArrowLeft to use router.back()
