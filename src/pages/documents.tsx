@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { FileText, Upload, Download, Eye, CheckCircle, XCircle, Clock, AlertCircle, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -13,22 +14,13 @@ import { DocumentViewer } from "@/components/DocumentViewer";
 import { getUserDocuments, downloadDocument } from "@/services/documentService";
 import type { Document as DocType } from "@/services/documentService";
 
-interface Document {
-  id: string;
-  name: string;
-  category: string;
-  status: "approved" | "pending" | "rejected" | "missing";
-  uploadedAt?: string;
-  size?: string;
-  validUntil?: string;
-}
-
 export default function DocumentsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [documents, setDocuments] = useState<DocType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState("general");
   const [viewingDocument, setViewingDocument] = useState<DocType | null>(null);
 
   useEffect(() => {
@@ -93,15 +85,12 @@ export default function DocumentsPage() {
     setViewingDocument(doc);
   };
 
-  const handleUpload = (docName: string) => {
-    toast({
-      title: "Upload gestartet",
-      description: `${docName} wird hochgeladen...`,
-    });
-    // Hier würde die eigentliche Upload-Logik stehen
+  const handleUploadClick = (category: string = "general") => {
+    setUploadCategory(category);
+    setShowUploadDialog(true);
   };
 
-  const getStatusBadge = (status: Document["status"]) => {
+  const getStatusBadge = (status: DocType["status"]) => {
     switch (status) {
       case "approved":
         return (
@@ -124,20 +113,12 @@ export default function DocumentsPage() {
             Abgelehnt
           </Badge>
         );
-      case "missing":
-        return (
-          <Badge className="bg-[rgba(148,163,184,0.15)] text-[#94a3b8] border-[rgba(148,163,184,0.3)]">
-            <AlertCircle className="w-3 h-3 mr-1" />
-            Fehlt
-          </Badge>
-        );
     }
   };
 
   const approvedDocs = documents.filter(d => d.status === "approved").length;
   const pendingDocs = documents.filter(d => d.status === "pending").length;
   const rejectedDocs = documents.filter(d => d.status === "rejected").length;
-  const missingDocs = documents.filter(d => d.status === "missing").length;
 
   return (
     <>
@@ -146,7 +127,7 @@ export default function DocumentsPage() {
         subtitle="Verwalte deine wichtigen Dokumente"
         actions={
           <Button 
-            onClick={() => handleUpload("Neues Dokument")}
+            onClick={() => handleUploadClick()}
             className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-9 px-4 text-sm font-semibold"
           >
             <Upload className="w-4 h-4 mr-2" />
@@ -157,7 +138,7 @@ export default function DocumentsPage() {
       
       <div className="p-7">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
           <Card className="bg-gradient-to-br from-[#0f2d22] via-[#0a1f17] to-[#071812] border-[rgba(16,185,129,0.3)] p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-lg bg-[rgba(16,185,129,0.15)] flex items-center justify-center">
@@ -192,18 +173,6 @@ export default function DocumentsPage() {
               {rejectedDocs}
             </div>
             <div className="text-xs text-[#8fa3b3]">Abgelehnt</div>
-          </Card>
-
-          <Card className="bg-[#161c21] border-white/[0.06] p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-lg bg-[rgba(148,163,184,0.12)] flex items-center justify-center">
-                <AlertCircle className="text-[#94a3b8]" size={18} />
-              </div>
-            </div>
-            <div className="font-display text-[28px] font-bold text-[#f0f4f8] leading-none mb-1">
-              {missingDocs}
-            </div>
-            <div className="text-xs text-[#8fa3b3]">Fehlt</div>
           </Card>
         </div>
 
@@ -243,7 +212,7 @@ export default function DocumentsPage() {
               value="action"
               className="data-[state=active]:bg-[rgba(16,185,129,0.15)] data-[state=active]:text-[#10b981]"
             >
-              Aktion erforderlich ({rejectedDocs + missingDocs})
+              Aktion erforderlich ({rejectedDocs})
             </TabsTrigger>
           </TabsList>
 
@@ -257,58 +226,35 @@ export default function DocumentsPage() {
                   <FileText className="text-[#10b981]" size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.name}</h3>
+                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.file_name}</h3>
                   <div className="flex items-center gap-2 mb-1.5">
                     <Badge className="bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)] text-[10px] px-2 py-0.5">
                       {doc.category}
                     </Badge>
-                    {doc.uploadedAt && (
-                      <span className="text-[11px] text-[#566878]">
-                        Hochgeladen am {new Date(doc.uploadedAt).toLocaleDateString('de-DE')}
-                      </span>
-                    )}
-                    {doc.size && (
-                      <span className="text-[11px] text-[#566878]">· {doc.size}</span>
-                    )}
+                    <span className="text-[11px] text-[#566878]">
+                      Hochgeladen am {new Date(doc.created_at).toLocaleDateString('de-DE')}
+                    </span>
+                    <span className="text-[11px] text-[#566878]">· {(doc.file_size / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
-                  {doc.validUntil && (
-                    <p className="text-[11px] text-[#566878]">
-                      Gültig bis {new Date(doc.validUntil).toLocaleDateString('de-DE')}
-                    </p>
-                  )}
                 </div>
                 {getStatusBadge(doc.status)}
                 <div className="flex items-center gap-2">
-                  {doc.status !== "missing" && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => handleView(doc.name)}
-                        className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
-                      >
-                        <Eye size={16} />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => handleDownload(doc.name)}
-                        className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
-                      >
-                        <Download size={16} />
-                      </Button>
-                    </>
-                  )}
-                  {(doc.status === "missing" || doc.status === "rejected") && (
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleUpload(doc.name)}
-                      className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs font-semibold"
-                    >
-                      <Upload className="w-3 h-3 mr-1" />
-                      Hochladen
-                    </Button>
-                  )}
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => handleView(doc)}
+                    className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
+                  >
+                    <Eye size={16} />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => handleDownload(doc)}
+                    className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
+                  >
+                    <Download size={16} />
+                  </Button>
                 </div>
               </Card>
             ))}
@@ -324,31 +270,23 @@ export default function DocumentsPage() {
                   <FileText className="text-[#10b981]" size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.name}</h3>
+                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.file_name}</h3>
                   <div className="flex items-center gap-2 mb-1.5">
                     <Badge className="bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)] text-[10px] px-2 py-0.5">
                       {doc.category}
                     </Badge>
-                    {doc.uploadedAt && (
-                      <span className="text-[11px] text-[#566878]">
-                        Hochgeladen am {new Date(doc.uploadedAt).toLocaleDateString('de-DE')}
-                      </span>
-                    )}
-                    {doc.size && (
-                      <span className="text-[11px] text-[#566878]">· {doc.size}</span>
-                    )}
+                    <span className="text-[11px] text-[#566878]">
+                      Hochgeladen am {new Date(doc.created_at).toLocaleDateString('de-DE')}
+                    </span>
+                    <span className="text-[11px] text-[#566878]">· {(doc.file_size / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
-                  {doc.validUntil && (
-                    <p className="text-[11px] text-[#566878]">
-                      Gültig bis {new Date(doc.validUntil).toLocaleDateString('de-DE')}
-                    </p>
-                  )}
                 </div>
                 {getStatusBadge(doc.status)}
                 <div className="flex items-center gap-2">
                   <Button 
                     size="sm" 
                     variant="ghost"
+                    onClick={() => handleView(doc)}
                     className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
                   >
                     <Eye size={16} />
@@ -356,6 +294,7 @@ export default function DocumentsPage() {
                   <Button 
                     size="sm" 
                     variant="ghost"
+                    onClick={() => handleDownload(doc)}
                     className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
                   >
                     <Download size={16} />
@@ -375,19 +314,15 @@ export default function DocumentsPage() {
                   <FileText className="text-[#f59e0b]" size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.name}</h3>
+                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.file_name}</h3>
                   <div className="flex items-center gap-2 mb-1.5">
                     <Badge className="bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)] text-[10px] px-2 py-0.5">
                       {doc.category}
                     </Badge>
-                    {doc.uploadedAt && (
-                      <span className="text-[11px] text-[#566878]">
-                        Hochgeladen am {new Date(doc.uploadedAt).toLocaleDateString('de-DE')}
-                      </span>
-                    )}
-                    {doc.size && (
-                      <span className="text-[11px] text-[#566878]">· {doc.size}</span>
-                    )}
+                    <span className="text-[11px] text-[#566878]">
+                      Hochgeladen am {new Date(doc.created_at).toLocaleDateString('de-DE')}
+                    </span>
+                    <span className="text-[11px] text-[#566878]">· {(doc.file_size / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
                 </div>
                 {getStatusBadge(doc.status)}
@@ -395,6 +330,7 @@ export default function DocumentsPage() {
                   <Button 
                     size="sm" 
                     variant="ghost"
+                    onClick={() => handleView(doc)}
                     className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
                   >
                     <Eye size={16} />
@@ -402,6 +338,7 @@ export default function DocumentsPage() {
                   <Button 
                     size="sm" 
                     variant="ghost"
+                    onClick={() => handleDownload(doc)}
                     className="h-8 w-8 p-0 text-[#566878] hover:text-[#8fa3b3] hover:bg-[#1c242b]"
                   >
                     <Download size={16} />
@@ -412,7 +349,7 @@ export default function DocumentsPage() {
           </TabsContent>
 
           <TabsContent value="action" className="space-y-2">
-            {documents.filter(d => d.status === "rejected" || d.status === "missing").map((doc) => (
+            {documents.filter(d => d.status === "rejected").map((doc) => (
               <Card 
                 key={doc.id}
                 className="bg-[#161c21] border-white/[0.06] border-l-[3px] border-l-[#ef4444] p-4 flex items-center gap-3.5 hover:border-white/[0.10] hover:bg-[#1c242b] transition-all"
@@ -421,34 +358,72 @@ export default function DocumentsPage() {
                   <FileText className="text-[#ef4444]" size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.name}</h3>
+                  <h3 className="font-medium text-sm text-[#f0f4f8] mb-0.5">{doc.file_name}</h3>
                   <div className="flex items-center gap-2 mb-1.5">
                     <Badge className="bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)] text-[10px] px-2 py-0.5">
                       {doc.category}
                     </Badge>
-                    {doc.uploadedAt && (
-                      <span className="text-[11px] text-[#566878]">
-                        Hochgeladen am {new Date(doc.uploadedAt).toLocaleDateString('de-DE')}
-                      </span>
-                    )}
-                    {doc.size && (
-                      <span className="text-[11px] text-[#566878]">· {doc.size}</span>
-                    )}
+                    <span className="text-[11px] text-[#566878]">
+                      Hochgeladen am {new Date(doc.created_at).toLocaleDateString('de-DE')}
+                    </span>
+                    <span className="text-[11px] text-[#566878]">· {(doc.file_size / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
+                  {doc.rejection_reason && (
+                    <p className="text-[11px] text-[#ef4444] mt-1">Grund: {doc.rejection_reason}</p>
+                  )}
                 </div>
                 {getStatusBadge(doc.status)}
                 <Button 
-                  size="sm" 
+                  size="sm"
+                  onClick={() => handleUploadClick(doc.category)}
                   className="bg-[#10b981] hover:bg-[#34d399] text-[#0a0d0f] h-8 px-4 text-xs font-semibold"
                 >
                   <Upload className="w-3 h-3 mr-1" />
-                  Hochladen
+                  Neu hochladen
                 </Button>
               </Card>
             ))}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-md scale-in">
+          <DialogHeader>
+            <DialogTitle>Dokument hochladen</DialogTitle>
+            <DialogDescription>
+              Laden Sie ein neues Dokument hoch. Akzeptierte Formate: PDF, JPG, PNG
+            </DialogDescription>
+          </DialogHeader>
+          
+          {user?.id && (
+            <DocumentUpload
+              userId={user.id}
+              category={uploadCategory}
+              onUploadComplete={handleUploadComplete}
+              onUploadError={handleUploadError}
+            />
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+              Schließen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Viewer */}
+      {viewingDocument && (
+        <DocumentViewer
+          filePath={viewingDocument.file_path}
+          fileName={viewingDocument.file_name}
+          fileType={viewingDocument.file_type}
+          isOpen={!!viewingDocument}
+          onClose={() => setViewingDocument(null)}
+        />
+      )}
     </>
   );
 }

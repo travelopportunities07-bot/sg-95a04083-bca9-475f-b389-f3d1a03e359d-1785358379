@@ -69,12 +69,11 @@ export async function getUserTasks(userId: string): Promise<{ data: Task[] | nul
       .from("tasks")
       .select("*")
       .eq("user_id", userId)
-      .order("priority", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as Task[], error: null };
   } catch (error: any) {
     return { data: null, error };
   }

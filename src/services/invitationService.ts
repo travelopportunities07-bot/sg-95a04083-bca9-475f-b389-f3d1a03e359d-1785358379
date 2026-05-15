@@ -63,7 +63,7 @@ export async function createInvitation(
 
     const inviteLink = `${window.location.origin}/auth/signup?invite=${code}`;
 
-    return { data, error: null, inviteLink };
+    return { data: data as Invitation, error: null, inviteLink };
   } catch (error: any) {
     return { data: null, error, inviteLink: null };
   }
@@ -92,7 +92,7 @@ export async function getInvitationByCode(code: string): Promise<{ data: Invitat
       throw new Error("Invitation code expired");
     }
 
-    return { data, error: null };
+    return { data: data as Invitation, error: null };
   } catch (error: any) {
     return { data: null, error };
   }
@@ -132,7 +132,7 @@ export async function getCompanyInvitations(companyId: string): Promise<{ data: 
 
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as Invitation[], error: null };
   } catch (error: any) {
     return { data: null, error };
   }

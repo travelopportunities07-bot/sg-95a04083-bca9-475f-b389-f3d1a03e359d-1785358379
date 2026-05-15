@@ -139,6 +139,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authError) throw authError;
       if (!authData.user) throw new Error("No user returned");
 
+      // Check if user already exists in profiles
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .single();
+
+      if (existingProfile) {
+        throw new Error("User with this email already exists");
+      }
+
       // 2. Create user profile with only the fields that exist in the schema
       const profileData: any = {
         email,

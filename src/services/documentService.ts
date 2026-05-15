@@ -69,26 +69,24 @@ export async function uploadDocument(
     onProgress?.({ progress: 70, status: "processing", message: "Enregistrement..." });
 
     // Save document metadata to database
-    const { data: docData, error: docError } = await supabase
+    const { data, error } = await supabase
       .from("documents")
       .insert({
         user_id: userId,
-        task_id: taskId,
-        category,
-        file_name: file.name,
-        file_path: uploadData.path,
-        file_type: file.type,
+        file_name: fileName,
+        file_path: filePath,
         file_size: file.size,
+        file_type: file.type,
+        category,
+        task_id: taskId,
         status: "pending",
       })
       .select()
       .single();
 
-    if (docError) throw docError;
+    if (error) throw error;
 
-    onProgress?.({ progress: 100, status: "complete", message: "Dokument erfolgreich hochgeladen." });
-
-    return { data: docData, error: null };
+    return { data: data as Document, error: null };
   } catch (error: any) {
     onProgress?.({ progress: 0, status: "error", message: error.message });
     return { data: null, error };
@@ -172,7 +170,7 @@ export async function getUserDocuments(userId: string): Promise<{ data: Document
 
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as Document[], error: null };
   } catch (error: any) {
     return { data: null, error };
   }
@@ -195,7 +193,7 @@ export async function getDocumentsByCategory(
 
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as Document[], error: null };
   } catch (error: any) {
     return { data: null, error };
   }
@@ -236,18 +234,20 @@ export async function getTeamDocuments(companyId: string): Promise<{ data: Docum
   try {
     const { data, error } = await supabase
       .from("documents")
-      .select(
-        `
+      .select(`
         *,
-        profiles!documents_user_id_fkey(first_name, last_name, email)
-      `
-      )
+        profiles (
+          first_name,
+          last_name,
+          email
+        )
+      `)
       .eq("profiles.company_id", companyId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as Document[], error: null };
   } catch (error: any) {
     return { data: null, error };
   }
