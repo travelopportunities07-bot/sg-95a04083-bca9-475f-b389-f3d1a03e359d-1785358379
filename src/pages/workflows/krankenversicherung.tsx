@@ -98,18 +98,6 @@ export default function KrankenversicherungWorkflow() {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const fileNames = Array.from(files).map(f => f.name);
-      setUploadedFiles([...uploadedFiles, ...fileNames]);
-      toast({
-        title: "Dokumente hochgeladen",
-        description: `${files.length} Datei(en) erfolgreich hochgeladen.`
-      });
-    }
-  };
-
   const handleMarkAsCompleted = async () => {
     if (user?.id) {
       await markTaskAsCompleted("krankenversicherung");
