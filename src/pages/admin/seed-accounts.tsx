@@ -127,13 +127,13 @@ export default function SeedAccounts() {
 
       setResult({
         success: true,
-        message: `Comptes créés avec succès!\n\nHR Manager:\nEmail: ${hrEmail}\nPassword: ${hrPassword}\n\nWorker (Fachkraft):\nEmail: ${workerEmail}\nPassword: ${workerPassword}\n\nNote: Les comptes sont créés mais nécessitent une confirmation email. Vérifiez votre boîte de réception ou configurez Supabase pour désactiver la confirmation email.`,
+        message: `✅ Comptes créés avec succès!\n\n👔 HR Manager:\nEmail: ${hrEmail}\nPassword: ${hrPassword}\n\n👤 Worker (Fachkraft):\nEmail: ${workerEmail}\nPassword: ${workerPassword}\n\n🎉 Vous pouvez maintenant vous connecter immédiatement avec ces identifiants sur /auth/login`,
       });
     } catch (error: any) {
       console.error("Error creating test accounts:", error);
       setResult({
         success: false,
-        message: `Erreur: ${error.message}\n\nSi vous voyez "email rate limit exceeded", attendez quelques minutes ou contactez le support Supabase pour augmenter la limite.`,
+        message: `❌ Erreur: ${error.message}`,
       });
     } finally {
       setLoading(false);
@@ -212,7 +212,7 @@ export default function SeedAccounts() {
 
               <Alert>
                 <AlertDescription className="text-xs">
-                  <strong>Note:</strong> Les comptes seront créés avec confirmation email désactivée.
+                  <strong>✅ Confirmation email désactivée:</strong> Les comptes seront créés sans email de confirmation.
                   Vous pourrez vous connecter immédiatement après la création.
                 </AlertDescription>
               </Alert>
