@@ -39,6 +39,7 @@ export default function SeedAccounts() {
         email: hrEmail,
         password: hrPassword,
         options: {
+          emailRedirectTo: undefined,
           data: {
             full_name: "HR Manager Demo",
             first_name: "HR",
@@ -51,6 +52,9 @@ export default function SeedAccounts() {
 
       if (hrAuthError) throw hrAuthError;
 
+      // Attendre un peu pour éviter le rate limit
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       // 3. Créer le compte Worker
       const workerEmail = "worker.demo@workbridge-demo.com";
       const workerPassword = "Demo123!Worker";
@@ -59,6 +63,7 @@ export default function SeedAccounts() {
         email: workerEmail,
         password: workerPassword,
         options: {
+          emailRedirectTo: undefined,
           data: {
             full_name: "Max Mustermann",
             first_name: "Max",
@@ -122,13 +127,13 @@ export default function SeedAccounts() {
 
       setResult({
         success: true,
-        message: `Comptes créés avec succès!\n\nHR Manager:\nEmail: ${hrEmail}\nPassword: ${hrPassword}\n\nWorker (Fachkraft):\nEmail: ${workerEmail}\nPassword: ${workerPassword}`,
+        message: `Comptes créés avec succès!\n\nHR Manager:\nEmail: ${hrEmail}\nPassword: ${hrPassword}\n\nWorker (Fachkraft):\nEmail: ${workerEmail}\nPassword: ${workerPassword}\n\nNote: Les comptes sont créés mais nécessitent une confirmation email. Vérifiez votre boîte de réception ou configurez Supabase pour désactiver la confirmation email.`,
       });
     } catch (error: any) {
       console.error("Error creating test accounts:", error);
       setResult({
         success: false,
-        message: `Erreur: ${error.message}`,
+        message: `Erreur: ${error.message}\n\nSi vous voyez "email rate limit exceeded", attendez quelques minutes ou contactez le support Supabase pour augmenter la limite.`,
       });
     } finally {
       setLoading(false);
