@@ -7,8 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Check, Calendar as CalendarIcon, Globe, Video, Users, MapPin } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { markTaskAsCompleted } from "@/services/taskService";
+import { ArrowLeft, Check, Calendar as CalendarIcon, Globe, Video, Users, MapPin, CheckCircle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -63,11 +67,14 @@ const courseSchedules = [
 export default function DeutschkursWorkflow() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>("level");
   const [selectedLevel, setSelectedLevel] = useState<CourseLevel | "">("");
   const [selectedFormat, setSelectedFormat] = useState<CourseFormat | "">("");
   const [selectedSchedule, setSelectedSchedule] = useState("");
   const [startDate, setStartDate] = useState<Date>();
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -100,12 +107,39 @@ export default function DeutschkursWorkflow() {
     }
   };
 
+  const handleMarkAsCompleted = async () => {
+    if (user?.id) {
+      await markTaskAsCompleted("deutschkurs");
+    }
+    toast({
+      title: "✓ Erledigt!",
+      description: "Deutschkurs als erledigt markiert.",
+    });
+    setTimeout(() => router.push("/"), 1500);
+  };
+
   const handleSubmit = () => {
     toast({
       title: "Erfolgreich gebucht!",
       description: "Ihr Deutschkurs wurde erfolgreich gebucht.",
     });
     setTimeout(() => router.push("/"), 2000);
+  };
+
+  const handleUploadComplete = (documentId: string) => {
+    setUploadedDocuments([...uploadedDocuments, documentId]);
+    toast({
+      title: "Dokument hochgeladen",
+      description: "Dokument erfolgreich hochgeladen.",
+    });
+  };
+
+  const handleUploadError = (error: string) => {
+    toast({
+      title: "Fehler",
+      description: error,
+      variant: "destructive"
+    });
   };
 
   const selectedLevelData = courseLevels.find(l => l.level === selectedLevel);
@@ -487,12 +521,43 @@ export default function DeutschkursWorkflow() {
               </div>
             </Card>
 
-            <Button onClick={handleSubmit} className="w-full" size="lg">
-              Zurück zur Startseite
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={handleSubmit} variant="outline" className="flex-1">
+                Zurück zur Startseite
+              </Button>
+              <Button 
+                onClick={() => setShowCompleteDialog(true)} 
+                className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
+              >
+                ✓ Als erledigt markieren
+              </Button>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Alert Dialog for Erledigt */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aufgabe als erledigt markieren?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sind Sie sicher, dass diese Aufgabe abgeschlossen ist?
+              <br />
+              <strong className="text-foreground mt-2 block">Deutschkurs anmelden</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleMarkAsCompleted}
+              className="bg-success hover:bg-success/90"
+            >
+              ✓ Als erledigt markieren
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

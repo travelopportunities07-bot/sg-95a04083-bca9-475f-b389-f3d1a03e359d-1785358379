@@ -7,8 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Check, Upload, HeartPulse, Star, Shield } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { markTaskAsCompleted } from "@/services/taskService";
+import { ArrowLeft, Check, Upload, HeartPulse, Star, Shield, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type Step = "info" | "selection" | "form" | "upload" | "confirmation";
@@ -52,9 +56,11 @@ export default function KrankenversicherungWorkflow() {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>("info");
   const [selectedInsurance, setSelectedInsurance] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -104,12 +110,39 @@ export default function KrankenversicherungWorkflow() {
     }
   };
 
+  const handleMarkAsCompleted = async () => {
+    if (user?.id) {
+      await markTaskAsCompleted("krankenversicherung");
+    }
+    toast({
+      title: "✓ Erledigt!",
+      description: "Krankenversicherung als erledigt markiert.",
+    });
+    setTimeout(() => router.push("/"), 1500);
+  };
+
   const handleSubmit = () => {
     toast({
       title: "Erfolgreich!",
       description: "Ihre Krankenversicherung wurde erfolgreich beantragt.",
     });
     setTimeout(() => router.push("/"), 2000);
+  };
+
+  const handleUploadComplete = (documentId: string) => {
+    setUploadedDocuments([...uploadedDocuments, documentId]);
+    toast({
+      title: "Dokument hochgeladen",
+      description: "Dokument erfolgreich hochgeladen.",
+    });
+  };
+
+  const handleUploadError = (error: string) => {
+    toast({
+      title: "Fehler",
+      description: error,
+      variant: "destructive"
+    });
   };
 
   return (
@@ -358,49 +391,35 @@ export default function KrankenversicherungWorkflow() {
           <div className="space-y-4 fade-in">
             <h2 className="text-lg font-semibold">Dokumente hochladen</h2>
             
-            <Card className="p-6 space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="font-medium">Reisepass oder Personalausweis</p>
-                    <p className="text-xs text-muted-foreground">PDF, JPG oder PNG (max. 5MB)</p>
-                  </div>
-                  <Label htmlFor="passport" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span className="text-sm">Upload</span>
-                    </div>
-                    <Input id="passport" type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.jpg,.jpeg,.png" />
-                  </Label>
-                </div>
+            {user?.id && (
+              <DocumentUpload
+                userId={user.id}
+                category="krankenversicherung"
+                taskId="krankenversicherung"
+                onUploadComplete={handleUploadComplete}
+                onUploadError={handleUploadError}
+              />
+            )}
 
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="font-medium">Arbeitsvertrag</p>
-                    <p className="text-xs text-muted-foreground">PDF (max. 5MB)</p>
-                  </div>
-                  <Label htmlFor="contract" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span className="text-sm">Upload</span>
-                    </div>
-                    <Input id="contract" type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" />
-                  </Label>
-                </div>
-              </div>
-
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Hochgeladene Dateien:</p>
-                  {uploadedFiles.map((file, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-success/10 rounded-lg">
-                      <Check className="w-4 h-4 text-success" />
-                      <span className="text-sm">{file}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <Card className="p-4 bg-accent/10">
+              <h3 className="font-medium mb-2">Erforderliche Dokumente:</h3>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Reisepass oder Personalausweis</li>
+                <li>• Arbeitsvertrag</li>
+                <li>• Anmeldebestätigung (falls vorhanden)</li>
+              </ul>
             </Card>
+
+            {uploadedDocuments.length > 0 && (
+              <Card className="p-4 bg-success/10 border-success/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  <span className="font-medium text-success">
+                    {uploadedDocuments.length} Dokument(e) hochgeladen
+                  </span>
+                </div>
+              </Card>
+            )}
 
             <div className="flex gap-3">
               <Button onClick={handleBack} variant="outline" className="flex-1">
@@ -463,12 +482,43 @@ export default function KrankenversicherungWorkflow() {
               </ul>
             </div>
 
-            <Button onClick={handleSubmit} className="w-full" size="lg">
-              Zurück zur Startseite
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={handleSubmit} variant="outline" className="flex-1">
+                Zurück zur Startseite
+              </Button>
+              <Button 
+                onClick={() => setShowCompleteDialog(true)} 
+                className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
+              >
+                ✓ Als erledigt markieren
+              </Button>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Alert Dialog for Erledigt */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aufgabe als erledigt markieren?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sind Sie sicher, dass diese Aufgabe abgeschlossen ist?
+              <br />
+              <strong className="text-foreground mt-2 block">Krankenversicherung abschließen</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleMarkAsCompleted}
+              className="bg-success hover:bg-success/90"
+            >
+              ✓ Als erledigt markieren
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

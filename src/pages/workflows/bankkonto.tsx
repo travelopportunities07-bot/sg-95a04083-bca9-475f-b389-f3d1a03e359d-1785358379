@@ -4,11 +4,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Check, Upload, CreditCard, Smartphone, Building2, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { markTaskAsCompleted } from "@/services/taskService";
+import { ArrowLeft, Check, Upload, CreditCard, Smartphone, Building2, CheckCircle2, CheckCircle } from "lucide-react";
 
 type Step = "banks" | "form" | "upload" | "verification" | "confirmation";
 
@@ -54,9 +57,11 @@ const banks = [
 export default function BankkontoWorkflow() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>("banks");
   const [selectedBank, setSelectedBank] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -100,12 +105,23 @@ export default function BankkontoWorkflow() {
     const files = e.target.files;
     if (files) {
       const fileNames = Array.from(files).map(f => f.name);
-      setUploadedFiles([...uploadedFiles, ...fileNames]);
+      setUploadedDocuments([...uploadedDocuments, ...fileNames]);
       toast({
         title: "Dokument hochgeladen",
         description: `${files.length} Datei(en) erfolgreich hochgeladen.`
       });
     }
+  };
+
+  const handleMarkAsCompleted = async () => {
+    if (user?.id) {
+      await markTaskAsCompleted("bankkonto");
+    }
+    toast({
+      title: "✓ Erledigt!",
+      description: "Bankkonto als erledigt markiert.",
+    });
+    setTimeout(() => router.push("/"), 1500);
   };
 
   const handleSubmit = () => {
@@ -114,6 +130,22 @@ export default function BankkontoWorkflow() {
       description: "Ihr Bankkonto-Antrag wurde erfolgreich gesendet.",
     });
     setTimeout(() => router.push("/"), 2000);
+  };
+
+  const handleUploadComplete = (documentId: string) => {
+    setUploadedDocuments([...uploadedDocuments, documentId]);
+    toast({
+      title: "Dokument hochgeladen",
+      description: "Dokument erfolgreich hochgeladen.",
+    });
+  };
+
+  const handleUploadError = (error: string) => {
+    toast({
+      title: "Fehler",
+      description: error,
+      variant: "destructive"
+    });
   };
 
   return (
@@ -345,63 +377,36 @@ export default function BankkontoWorkflow() {
           <div className="space-y-4 fade-in">
             <h2 className="text-lg font-semibold">Erforderliche Dokumente</h2>
             
-            <Card className="p-6 space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="font-medium">Reisepass/Personalausweis</p>
-                    <p className="text-xs text-muted-foreground">PDF, JPG (max. 5MB)</p>
-                  </div>
-                  <Label htmlFor="passport" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span className="text-sm">Upload</span>
-                    </div>
-                    <Input id="passport" type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.jpg,.jpeg,.png" />
-                  </Label>
-                </div>
+            {user?.id && (
+              <DocumentUpload
+                userId={user.id}
+                category="bankkonto"
+                taskId="bankkonto"
+                onUploadComplete={handleUploadComplete}
+                onUploadError={handleUploadError}
+              />
+            )}
 
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="font-medium">Meldebescheinigung (Anmeldung)</p>
-                    <p className="text-xs text-muted-foreground">PDF (max. 5MB)</p>
-                  </div>
-                  <Label htmlFor="anmeldung" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span className="text-sm">Upload</span>
-                    </div>
-                    <Input id="anmeldung" type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" />
-                  </Label>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="font-medium">Arbeitsvertrag</p>
-                    <p className="text-xs text-muted-foreground">PDF (max. 5MB)</p>
-                  </div>
-                  <Label htmlFor="contract" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span className="text-sm">Upload</span>
-                    </div>
-                    <Input id="contract" type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" />
-                  </Label>
-                </div>
-              </div>
-
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Hochgeladene Dateien:</p>
-                  {uploadedFiles.map((file, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-success/10 rounded-lg">
-                      <Check className="w-4 h-4 text-success" />
-                      <span className="text-sm">{file}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <Card className="p-4 bg-accent/10">
+              <h3 className="font-medium mb-2">Benötigte Dokumente:</h3>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Reisepass oder Personalausweis</li>
+                <li>• Meldebescheinigung (Anmeldung)</li>
+                <li>• Arbeitsvertrag</li>
+                <li>• Steuer-ID (optional)</li>
+              </ul>
             </Card>
+
+            {uploadedDocuments.length > 0 && (
+              <Card className="p-4 bg-success/10 border-success/20">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  <span className="font-medium text-success">
+                    {uploadedDocuments.length} Dokument(e) hochgeladen
+                  </span>
+                </div>
+              </Card>
+            )}
 
             <div className="flex gap-3">
               <Button onClick={handleBack} variant="outline" className="flex-1">
@@ -452,7 +457,7 @@ export default function BankkontoWorkflow() {
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">Dokumente</h3>
                 <p className="text-sm text-muted-foreground">
-                  {uploadedFiles.length} Dokument(e) hochgeladen
+                  {uploadedDocuments.length} Dokument(e) hochgeladen
                 </p>
               </div>
             </Card>
@@ -529,12 +534,43 @@ export default function BankkontoWorkflow() {
               </div>
             </Card>
 
-            <Button onClick={handleSubmit} className="w-full" size="lg">
-              Zurück zur Startseite
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={handleSubmit} variant="outline" className="flex-1">
+                Zurück zur Startseite
+              </Button>
+              <Button 
+                onClick={() => setShowCompleteDialog(true)} 
+                className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
+              >
+                ✓ Als erledigt markieren
+              </Button>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Alert Dialog for Erledigt */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aufgabe als erledigt markieren?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sind Sie sicher, dass diese Aufgabe abgeschlossen ist?
+              <br />
+              <strong className="text-foreground mt-2 block">Bankkonto eröffnen</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleMarkAsCompleted}
+              className="bg-success hover:bg-success/90"
+            >
+              ✓ Als erledigt markieren
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
