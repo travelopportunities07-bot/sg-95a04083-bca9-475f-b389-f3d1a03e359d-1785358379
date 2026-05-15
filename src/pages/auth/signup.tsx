@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,8 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { getInvitationByCode, acceptInvitation } from "@/services/invitationService";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const router = useRouter();
@@ -28,6 +30,12 @@ export default function Signup() {
   const [success, setSuccess] = useState(false);
   const [step, setStep] = useState(1);
   const submittedRef = useRef(false);
+  
+  // Invitation state
+  const [inviteCode, setInviteCode] = useState("");
+  const [invitation, setInvitation] = useState<any>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -42,6 +50,42 @@ export default function Signup() {
     jobType: "Fachkraft" as "Fachkraft" | "Azubi",
     company: ""
   });
+
+  // Check for invitation code in URL
+  useEffect(() => {
+    const { invite } = router.query;
+    if (invite && typeof invite === "string") {
+      setInviteCode(invite);
+      loadInvitation(invite);
+    }
+  }, [router.query]);
+
+  const loadInvitation = async (code: string) => {
+    setInviteLoading(true);
+    setInviteError("");
+    
+    try {
+      const { data, error } = await getInvitationByCode(code);
+      
+      if (error) throw error;
+      
+      if (data) {
+        setInvitation(data);
+        // Pre-fill form with invitation data
+        setFormData(prev => ({
+          ...prev,
+          email: data.email,
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          role: data.role
+        }));
+      }
+    } catch (err: any) {
+      setInviteError(err.message || "Code d'invitation invalide ou expiré");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +110,8 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      await signUp(
+      // Sign up user
+      const { data: authData } = await signUp(
         formData.email,
         formData.password,
         {
@@ -84,6 +129,25 @@ export default function Signup() {
           })
         }
       );
+
+      // If invitation exists, link user to company and HR manager
+      if (invitation && authData?.user) {
+        // Update profile with company and HR manager
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({
+            company_id: invitation.company_id,
+            hr_manager_id: invitation.invited_by
+          })
+          .eq("id", authData.user.id);
+
+        if (updateError) {
+          console.error("Error linking to company:", updateError);
+        }
+
+        // Mark invitation as accepted
+        await acceptInvitation(invitation.id, authData.user.id);
+      }
       
       setSuccess(true);
     } catch (err: any) {
@@ -131,6 +195,38 @@ export default function Signup() {
 
   const totalSteps = formData.role === "worker" ? 3 : 2;
 
+  // Show invitation loading state
+  if (inviteCode && inviteLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
+        <Card className="w-full max-w-md p-8 premium-card text-center bg-[#161c21] border-[rgba(16,185,129,0.3)]">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-[#8fa3b3]">Einladung wird geladen...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show invitation error
+  if (inviteCode && inviteError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
+        <Card className="w-full max-w-md p-8 premium-card text-center bg-[#161c21] border-[rgba(239,68,68,0.3)]">
+          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+          <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]">Ungültige Einladung</h1>
+          <p className="text-[#8fa3b3] mb-6">{inviteError}</p>
+          <Button
+            onClick={() => router.push("/auth/signup")}
+            variant="outline"
+            className="w-full"
+          >
+            Normale Registrierung
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
@@ -141,6 +237,13 @@ export default function Signup() {
           <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
             Compte créé avec succès !
           </h1>
+          {invitation && (
+            <div className="bg-[#1c242b] border border-[rgba(16,185,129,0.3)] rounded-xl p-4 mb-4">
+              <p className="text-sm text-[#34d399] mb-2">
+                ✅ Automatisch mit Ihrem Unternehmen verbunden
+              </p>
+            </div>
+          )}
           <p className="text-[#8fa3b3] mb-4">
             Un email de vérification a été envoyé à <strong className="text-[#34d399]">{formData.email}</strong>
           </p>
@@ -181,9 +284,18 @@ export default function Signup() {
             <span className="text-2xl font-bold text-white" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>WB</span>
           </div>
           <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-            {t("auth.signup.title")}
+            {invitation ? "Einladung annehmen" : t("auth.signup.title")}
           </h1>
-          <p className="text-[#8fa3b3] text-sm">{t("auth.signup.subtitle")}</p>
+          <p className="text-[#8fa3b3] text-sm">
+            {invitation ? `Eingeladen von Ihrem HR Manager` : t("auth.signup.subtitle")}
+          </p>
+          {invitation && (
+            <div className="mt-3 bg-[#1c242b] border border-[rgba(16,185,129,0.3)] rounded-xl p-3">
+              <p className="text-xs text-[#34d399]">
+                ✓ Code: <span className="font-mono font-bold">{inviteCode}</span>
+              </p>
+            </div>
+          )}
           <p className="text-xs text-[#566878] mt-2">
             Schritt {step} von {totalSteps}
           </p>

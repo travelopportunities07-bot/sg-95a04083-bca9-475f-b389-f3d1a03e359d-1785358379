@@ -3,9 +3,12 @@ title: Workflow d'invitation et liaison automatique HR-Employé
 status: todo
 priority: high
 type: feature
-tags: [onboarding, invitation, hr]
+tags:
+- onboarding
+- invitation
+- hr
 created_by: agent
-created_at: 2026-05-15T14:12:44Z
+created_at: 2026-05-15 14:12:44+00:00
 position: 20
 ---
 
