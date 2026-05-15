@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon, DollarSign } from "lucide-react";
+import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon, DollarSign, Activity } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -26,6 +26,7 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
     { icon: Home, label: "Home", path: "/", tooltip: "Home" },
     { icon: CheckCircle, label: "Aufgaben", path: "/tasks", tooltip: "Aufgaben" },
     { icon: FileText, label: "Dokumente", path: "/documents", tooltip: "Dokumente" },
+    { icon: Activity, label: "Aktivität", path: "/activity", tooltip: "Aktivitätsverlauf" },
     { icon: HelpCircle, label: "FAQ", path: "/faq", tooltip: "FAQ" },
     { icon: DollarSign, label: "Pricing", path: "/pricing", tooltip: "Pricing" },
   ];
