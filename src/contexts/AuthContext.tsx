@@ -112,16 +112,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error("Sign in error:", error);
+        
+        // Messages d'erreur plus clairs
+        if (error.message.includes("Email not confirmed")) {
+          return { 
+            error: new Error("Votre email n'est pas encore confirmé. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation."),
+            userProfile: null 
+          };
+        } else if (error.message.includes("Invalid login credentials")) {
+          return { 
+            error: new Error("Email ou mot de passe incorrect. Veuillez réessayer."),
+            userProfile: null 
+          };
+        }
+        
         return { error, userProfile: null };
       }
 
       if (data.user) {
+        // Attendre un peu pour que le profil soit créé par le trigger
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const profile = await fetchUserProfile(data.user.id);
         if (!profile) {
-          return { 
-            error: new Error("Failed to fetch user profile. Please try again."), 
-            userProfile: null 
-          };
+          // Si le profil n'existe toujours pas, créer un profil basique
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: data.user.id,
+              email: data.user.email || email,
+              role: 'worker',
+              first_name: '',
+              last_name: ''
+            });
+
+          if (profileError) {
+            console.error("Error creating profile:", profileError);
+          }
+          
+          // Récupérer à nouveau
+          const retryProfile = await fetchUserProfile(data.user.id);
+          return { error: null, userProfile: retryProfile };
         }
         return { error: null, userProfile: profile };
       }
@@ -135,16 +166,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      // 1. Create auth user with email confirmation
+      // 1. Créer l'utilisateur auth (le trigger créera automatiquement le profil de base)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${getURL()}auth/confirm-email`,
           data: {
-            role: userData.role,
-            first_name: userData.first_name,
-            last_name: userData.last_name,
+            role: userData.role || 'worker',
+            first_name: userData.first_name || '',
+            last_name: userData.last_name || '',
           }
         }
       });
@@ -152,41 +183,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authError) throw authError;
       if (!authData.user) throw new Error("No user returned");
 
-      // Check if user already exists in profiles
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", authData.user.id)
-        .single();
+      // 2. Si l'utilisateur a des données supplémentaires, mettre à jour le profil
+      if (userData.nationality || userData.arrival_date || userData.job_type || userData.language_level) {
+        // Attendre que le trigger crée le profil
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const profileUpdateData: any = {};
+        if (userData.nationality) profileUpdateData.nationality = userData.nationality;
+        if (userData.arrival_date) profileUpdateData.arrival_date = userData.arrival_date;
+        if (userData.job_type) profileUpdateData.job_type = userData.job_type;
+        if (userData.language_level) profileUpdateData.language_level = userData.language_level;
+        if (userData.company_id) profileUpdateData.company_id = userData.company_id;
+        if (userData.hr_manager_id) profileUpdateData.hr_manager_id = userData.hr_manager_id;
 
-      if (existingProfile) {
-        throw new Error("User with this email already exists");
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update(profileUpdateData)
+          .eq("id", authData.user.id);
+
+        if (updateError) {
+          console.error("Error updating profile:", updateError);
+        }
       }
-
-      // 2. Create user profile with only the fields that exist in the schema
-      const profileData: any = {
-        id: authData.user.id,
-        email,
-        role: userData.role,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-      };
-
-      // Add optional fields only if provided
-      if (userData.nationality) profileData.nationality = userData.nationality;
-      if (userData.arrival_date) profileData.arrival_date = userData.arrival_date;
-      if (userData.job_type) profileData.job_type = userData.job_type;
-      if (userData.language_level) profileData.language_level = userData.language_level;
-      if (userData.company) profileData.company = userData.company;
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert(profileData);
-
-      if (profileError) throw profileError;
 
       return { error: null, data: { user: authData.user } };
     } catch (error: any) {
+      console.error("Signup error:", error);
       return { error, data: null };
     }
   };
