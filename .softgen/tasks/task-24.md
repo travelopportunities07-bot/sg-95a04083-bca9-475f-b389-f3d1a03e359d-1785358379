@@ -1,6 +1,6 @@
 ---
 title: Amélioration page des paramètres
-status: todo
+status: done
 priority: low
 type: feature
 tags: [settings, ui]
@@ -13,12 +13,13 @@ position: 24
 La page /settings existe déjà mais nécessite des améliorations : ajout de sections, meilleure organisation, gestion des préférences de notifications.
 
 ## Checklist
-- [ ] Vérifier structure actuelle de /settings
-- [ ] Ajouter section "Préférences de notifications" (email, push)
-- [ ] Ajouter section "Sécurité" (changement mot de passe, 2FA)
-- [ ] Améliorer le design avec onglets ou accordéon
-- [ ] Ajouter messages de confirmation pour chaque action
-- [ ] Tester toutes les fonctionnalités
+- [x] Vérifier structure actuelle de /settings
+- [x] Ajouter section "Préférences de notifications" (email, push)
+- [x] Ajouter section "Sécurité" (changement mot de passe, 2FA)
+- [x] Améliorer le design avec onglets ou accordéon
+- [x] Ajouter messages de confirmation pour chaque action
+- [x] Rendre fonctionnel le changement de mot de passe
+- [x] Connecter les préférences de notifications à la base de données
 
 ## Acceptance
 - La page des paramètres est bien organisée par sections

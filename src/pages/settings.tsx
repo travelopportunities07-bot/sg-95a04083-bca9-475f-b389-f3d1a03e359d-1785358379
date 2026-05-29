@@ -15,18 +15,29 @@ import {
   CheckCircle, 
   AlertCircle,
   Mail,
-  Lock
+  Lock,
+  Loader2
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showVerificationCode, setShowVerificationCode] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("ABCD-EFGH-IJKL-MNOP");
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Notifications state
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -34,6 +45,105 @@ export default function SettingsPage() {
     documentUpdates: true,
     deadlines: true
   });
+
+  // Load user preferences on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadUserPreferences();
+    }
+  }, [user?.id]);
+
+  const loadUserPreferences = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("notification_preferences")
+        .eq("id", user?.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data?.notification_preferences) {
+        setNotifications(data.notification_preferences);
+      }
+    } catch (error) {
+      console.error("Error loading preferences:", error);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Fehler",
+        description: "Die Passwörter stimmen nicht überein.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast({
+        title: "Fehler",
+        description: "Das Passwort muss mindestens 8 Zeichen lang sein.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Passwort aktualisiert",
+        description: "Ihr Passwort wurde erfolgreich geändert.",
+      });
+
+      // Reset form
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: error.message || "Passwort konnte nicht geändert werden.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNotificationChange = async (key: string, value: boolean) => {
+    const updatedNotifications = { ...notifications, [key]: value };
+    setNotifications(updatedNotifications);
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ notification_preferences: updatedNotifications })
+        .eq("id", user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Gespeichert",
+        description: "Benachrichtigungseinstellungen aktualisiert.",
+      });
+    } catch (error) {
+      toast({
+        title: "Fehler",
+        description: "Einstellungen konnten nicht gespeichert werden.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleEnable2FA = () => {
     setShowVerificationCode(true);
@@ -224,26 +334,19 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-[#f0f4f8] mb-2">Aktuelles Passwort</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#566878]" />
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10 bg-[#1c242b] border-white/[0.06] text-[#f0f4f8]"
-                    />
-                  </div>
-                </div>
-
+              <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
                   <Label className="text-[#f0f4f8] mb-2">Neues Passwort</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#566878]" />
                     <Input
                       type="password"
-                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Mindestens 8 Zeichen"
+                      required
+                      minLength={8}
+                      disabled={loading}
                       className="pl-10 bg-[#1c242b] border-white/[0.06] text-[#f0f4f8]"
                     />
                   </div>
@@ -255,16 +358,31 @@ export default function SettingsPage() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#566878]" />
                     <Input
                       type="password"
-                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Passwort wiederholen"
+                      required
+                      disabled={loading}
                       className="pl-10 bg-[#1c242b] border-white/[0.06] text-[#f0f4f8]"
                     />
                   </div>
                 </div>
 
-                <Button className="w-full bg-gradient-to-r from-[#3b82f6] to-[#1e40af] hover:from-[#60a5fa] hover:to-[#3b82f6] text-white">
-                  Passwort aktualisieren
+                <Button 
+                  type="submit"
+                  disabled={loading || !newPassword || !confirmPassword}
+                  className="w-full bg-gradient-to-r from-[#3b82f6] to-[#1e40af] hover:from-[#60a5fa] hover:to-[#3b82f6] text-white"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Wird aktualisiert...
+                    </>
+                  ) : (
+                    "Passwort aktualisieren"
+                  )}
                 </Button>
-              </div>
+              </form>
             </Card>
           </TabsContent>
 
@@ -286,7 +404,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={notifications.email}
-                    onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
+                    onCheckedChange={(checked) => handleNotificationChange("email", checked)}
                   />
                 </div>
 
@@ -300,7 +418,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={notifications.push}
-                    onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
+                    onCheckedChange={(checked) => handleNotificationChange("push", checked)}
                   />
                 </div>
 
@@ -314,7 +432,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={notifications.taskReminders}
-                    onCheckedChange={(checked) => setNotifications({...notifications, taskReminders: checked})}
+                    onCheckedChange={(checked) => handleNotificationChange("taskReminders", checked)}
                   />
                 </div>
 
@@ -328,7 +446,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={notifications.deadlines}
-                    onCheckedChange={(checked) => setNotifications({...notifications, deadlines: checked})}
+                    onCheckedChange={(checked) => handleNotificationChange("deadlines", checked)}
                   />
                 </div>
               </div>
