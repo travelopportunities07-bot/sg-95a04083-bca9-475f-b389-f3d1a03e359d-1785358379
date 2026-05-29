@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logActivity } from "./activityService";
 
 export interface Document {
   id: string;
@@ -209,6 +210,13 @@ export async function updateDocumentStatus(
   rejectionReason?: string
 ): Promise<{ success: boolean; error: Error | null }> {
   try {
+    // Get document details for logging
+    const { data: document } = await supabase
+      .from("documents")
+      .select("*, profiles!inner(email)")
+      .eq("id", documentId)
+      .single();
+
     const { error } = await supabase
       .from("documents")
       .update({
@@ -220,6 +228,20 @@ export async function updateDocumentStatus(
       .eq("id", documentId);
 
     if (error) throw error;
+
+    // Log activity
+    if (document) {
+      await logActivity({
+        actionType: status === "approved" ? "document_approved" : "document_rejected",
+        targetUserId: document.user_id,
+        targetUserEmail: (document.profiles as any)?.email,
+        details: {
+          document_name: document.file_name,
+          category: document.category,
+          rejection_reason: rejectionReason,
+        },
+      });
+    }
 
     return { success: true, error: null };
   } catch (error: any) {

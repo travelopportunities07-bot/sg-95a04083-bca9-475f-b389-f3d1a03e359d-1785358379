@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logActivity } from "./activityService";
 
 export interface Invitation {
   id: string;
@@ -62,6 +63,18 @@ export async function createInvitation(
     if (error) throw error;
 
     const inviteLink = `${window.location.origin}/auth/signup?invite=${code}`;
+
+    // Log activity
+    await logActivity({
+      actionType: "invite_sent",
+      targetUserEmail: email,
+      details: {
+        role,
+        invite_code: code,
+        first_name: firstName,
+        last_name: lastName,
+      },
+    });
 
     return { data: data as Invitation, error: null, inviteLink };
   } catch (error: any) {
@@ -166,8 +179,16 @@ export async function resendInvitation(invitationId: string): Promise<{ success:
 
     if (updateError) throw updateError;
 
-    // Here you would send the email via API route
-    // For now, we'll just return success
+    // Log activity
+    await logActivity({
+      actionType: "invite_sent",
+      targetUserEmail: invitation.email,
+      details: {
+        action: "resend",
+        invite_code: invitation.code,
+      },
+    });
+
     return { success: true, error: null };
   } catch (error: any) {
     return { success: false, error };
