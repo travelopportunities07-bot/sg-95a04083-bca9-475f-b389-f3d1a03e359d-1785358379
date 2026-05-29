@@ -14,48 +14,47 @@ export default function ConfirmEmail() {
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       try {
-        // Get the token from URL hash
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get("access_token");
-        const type = hashParams.get("type");
+        // Supabase gère automatiquement la confirmation d'email via le hash URL
+        // On vérifie juste si l'utilisateur est maintenant authentifié
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (!accessToken) {
+        if (sessionError) {
+          console.error("Session error:", sessionError);
           setStatus("error");
-          setErrorMessage("Lien de vérification invalide ou expiré");
+          setErrorMessage("Erreur lors de la vérification de la session");
           return;
         }
 
-        if (type === "signup") {
-          // Verify the email
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: accessToken,
-            type: "signup"
-          });
-
-          if (error) {
-            setStatus("error");
-            setErrorMessage(error.message);
-            return;
-          }
-
+        // Si on a une session, l'email a été confirmé avec succès
+        if (session) {
           setStatus("success");
           
-          // Redirect to login after 3 seconds
+          // Déconnecter l'utilisateur pour qu'il se connecte manuellement
+          await supabase.auth.signOut();
+          
+          // Rediriger vers la page de connexion après 2 secondes
           setTimeout(() => {
             router.push("/auth/login?verified=true");
-          }, 3000);
+          }, 2000);
         } else {
+          // Pas de session = lien invalide ou expiré
           setStatus("error");
-          setErrorMessage("Type de vérification non reconnu");
+          setErrorMessage("Lien de confirmation invalide ou expiré");
         }
       } catch (error: any) {
         console.error("Error confirming email:", error);
         setStatus("error");
-        setErrorMessage(error.message || "Une erreur est survenue");
+        setErrorMessage(error.message || "Une erreur est survenue lors de la confirmation");
       }
     };
 
-    handleEmailConfirmation();
+    // Attendre que le composant soit monté et que le hash soit disponible
+    if (window.location.hash) {
+      handleEmailConfirmation();
+    } else {
+      setStatus("error");
+      setErrorMessage("Lien de confirmation manquant");
+    }
   }, [router]);
 
   return (
@@ -81,18 +80,23 @@ export default function ConfirmEmail() {
 
         {status === "success" && (
           <>
-            <div className="w-16 h-16 rounded-2xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center mx-auto mb-4 animate-pulse">
               <CheckCircle className="w-8 h-8 text-[#34d399]" />
             </div>
             <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
               Email vérifié !
             </h1>
-            <p className="text-[#8fa3b3] mb-6">
-              Votre adresse email a été vérifiée avec succès. Vous pouvez maintenant vous connecter.
+            <p className="text-[#8fa3b3] mb-4">
+              Votre adresse email a été vérifiée avec succès.
             </p>
+            <div className="bg-[#1c242b] border border-[rgba(16,185,129,0.3)] rounded-xl p-4 mb-4">
+              <p className="text-sm text-[#34d399]">
+                ✓ Redirection vers la page de connexion...
+              </p>
+            </div>
             <Link href="/auth/login?verified=true">
               <Button className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium">
-                Se connecter
+                Se connecter maintenant
               </Button>
             </Link>
           </>
@@ -106,7 +110,7 @@ export default function ConfirmEmail() {
             <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
               Erreur de vérification
             </h1>
-            <p className="text-[#ef4444] mb-6">
+            <p className="text-[#ef4444] mb-6 text-sm">
               {errorMessage}
             </p>
             <div className="space-y-2">
