@@ -20,13 +20,19 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
+  const [showPasswordUpdatedMessage, setShowPasswordUpdatedMessage] = useState(false);
 
   useEffect(() => {
     // Check if user was redirected after email verification
     if (router.query.verified === "true") {
       setShowVerifiedMessage(true);
-      // Hide message after 5 seconds
       setTimeout(() => setShowVerifiedMessage(false), 5000);
+    }
+    
+    // Check if user was redirected after password reset
+    if (router.query.password_updated === "true") {
+      setShowPasswordUpdatedMessage(true);
+      setTimeout(() => setShowPasswordUpdatedMessage(false), 5000);
     }
   }, [router.query]);
 
@@ -91,6 +97,13 @@ export default function Login() {
           </div>
         )}
 
+        {showPasswordUpdatedMessage && (
+          <div className="mb-4 p-3 bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] rounded-xl text-[#34d399] text-sm flex items-center gap-2 fade-in">
+            <CheckCircle className="w-4 h-4" />
+            Mot de passe mis à jour avec succès ! Vous pouvez maintenant vous connecter.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-xl text-[#ef4444] text-sm fade-in">
@@ -113,7 +126,15 @@ export default function Login() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#f0f4f8]">{t("auth.login.password")}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-[#f0f4f8]">{t("auth.login.password")}</Label>
+              <Link 
+                href="/auth/forgot-password" 
+                className="text-xs text-[#34d399] hover:text-[#10b981] transition-colors"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"

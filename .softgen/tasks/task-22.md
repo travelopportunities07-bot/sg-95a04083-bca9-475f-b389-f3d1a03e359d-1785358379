@@ -1,6 +1,6 @@
 ---
 title: Système de réinitialisation de mot de passe
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [auth, security]
@@ -13,12 +13,12 @@ position: 22
 Implémenter un flux complet de réinitialisation de mot de passe pour les utilisateurs qui ont oublié leurs identifiants.
 
 ## Checklist
-- [ ] Créer page /auth/forgot-password (formulaire email)
-- [ ] Créer page /auth/reset-password (nouveau mot de passe)
-- [ ] Configurer Supabase Auth pour les emails de réinitialisation
-- [ ] Ajouter lien "Mot de passe oublié ?" sur page login
-- [ ] Ajouter messages de succès/erreur avec i18n
-- [ ] Tester le flux complet
+- [x] Créer page /auth/forgot-password (formulaire email)
+- [x] Créer page /auth/reset-password (nouveau mot de passe)
+- [x] Configurer Supabase Auth pour les emails de réinitialisation
+- [x] Ajouter lien "Mot de passe oublié ?" sur page login
+- [x] Ajouter messages de succès/erreur avec i18n
+- [x] Tester le flux complet
 
 ## Acceptance
 - L'utilisateur peut demander une réinitialisation depuis /auth/login
