@@ -64,7 +64,15 @@ export default function SettingsPage() {
       if (error) throw error;
 
       if (data?.notification_preferences) {
-        setNotifications(data.notification_preferences);
+        // Type casting for Supabase JSON response
+        const prefs = data.notification_preferences as any;
+        setNotifications({
+          email: typeof prefs.email === 'boolean' ? prefs.email : true,
+          push: typeof prefs.push === 'boolean' ? prefs.push : true,
+          taskReminders: typeof prefs.taskReminders === 'boolean' ? prefs.taskReminders : true,
+          documentUpdates: typeof prefs.documentUpdates === 'boolean' ? prefs.documentUpdates : true,
+          deadlines: typeof prefs.deadlines === 'boolean' ? prefs.deadlines : true
+        });
       }
     } catch (error) {
       console.error("Error loading preferences:", error);

@@ -1,0 +1,1 @@
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "push": true, "taskReminders": true, "documentUpdates": true, "deadlines": true}'::jsonb;

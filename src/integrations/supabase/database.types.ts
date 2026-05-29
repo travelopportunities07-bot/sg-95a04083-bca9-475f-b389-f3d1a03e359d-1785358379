@@ -285,6 +285,7 @@ export type Database = {
           language_level: string | null
           last_name: string | null
           nationality: string | null
+          notification_preferences: Json | null
           phone: string | null
           role: string | null
           updated_at: string | null
@@ -303,6 +304,7 @@ export type Database = {
           language_level?: string | null
           last_name?: string | null
           nationality?: string | null
+          notification_preferences?: Json | null
           phone?: string | null
           role?: string | null
           updated_at?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           language_level?: string | null
           last_name?: string | null
           nationality?: string | null
+          notification_preferences?: Json | null
           phone?: string | null
           role?: string | null
           updated_at?: string | null
