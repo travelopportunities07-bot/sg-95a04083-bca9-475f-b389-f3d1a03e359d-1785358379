@@ -1,3 +1,4 @@
+import React from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -151,8 +152,6 @@ interface ProtectedProps {
   fallback?: React.ReactNode;
   children: React.ReactNode;
 }
-
-import React from 'react';
 
 export function Protected({ permission, fallback = null, children }: ProtectedProps) {
   const { hasAccess, loading } = usePermission(permission);
