@@ -1,10 +1,124 @@
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Briefcase } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2, CheckCircle } from "lucide-react";
 
 export default function RoleSelect() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [role, setRole] = useState<"worker" | "hr_manager">("worker");
+  const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          router.push("/auth/login");
+          return;
+        }
+
+        if (!session) {
+          router.push("/auth/login");
+          return;
+        }
+
+        setUserEmail(session.user.email || "");
+
+        // Vérifier si le profil existe déjà
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+
+        if (existingProfile && existingProfile.role) {
+          // Profil déjà configuré, rediriger selon le rôle
+          if (existingProfile.role === "worker") {
+            router.push("/");
+          } else if (existingProfile.role === "hr_manager") {
+            router.push("/hr/employees");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
+        router.push("/auth/login");
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("No session found");
+      }
+
+      // Extraire le prénom et nom du user_metadata
+      const fullName = session.user.user_metadata?.full_name || "";
+      const firstName = session.user.user_metadata?.given_name || fullName.split(" ")[0] || "";
+      const lastName = session.user.user_metadata?.family_name || fullName.split(" ").slice(1).join(" ") || "";
+      const avatarUrl = session.user.user_metadata?.avatar_url || "";
+
+      // Créer ou mettre à jour le profil
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert({
+          id: session.user.id,
+          email: session.user.email || "",
+          role: role,
+          first_name: firstName,
+          last_name: lastName,
+          full_name: fullName,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        });
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Rediriger selon le rôle
+      if (role === "worker") {
+        router.push("/");
+      } else if (role === "hr_manager") {
+        router.push("/hr/employees");
+      }
+    } catch (err: any) {
+      console.error("Error setting role:", err);
+      setError(err.message || "Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
+        <Card className="w-full max-w-md p-8 premium-card text-center bg-[#161c21] border-[rgba(16,185,129,0.3)]">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-[#8fa3b3]">Chargement...</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
@@ -12,89 +126,73 @@ export default function RoleSelect() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0f2d22] via-[#0a1f17] to-[#071812] opacity-30"></div>
       </div>
 
-      <div className="w-full max-w-4xl relative z-10">
-        <div className="text-center mb-12">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[rgba(16,185,129,0.3)]">
-            <span className="text-3xl font-bold text-white" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>WB</span>
+      <Card className="w-full max-w-md p-8 premium-card fade-in-up bg-[#161c21] border-[rgba(16,185,129,0.3)] relative z-10">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[rgba(16,185,129,0.3)]">
+            <CheckCircle className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold mb-3 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-            Willkommen bei WorkBridgeDe
+          <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
+            Bienvenue !
           </h1>
-          <p className="text-[#8fa3b3] text-lg">Wählen Sie Ihren Kontotyp</p>
+          <p className="text-[#8fa3b3] text-sm">
+            Compte Google connecté : <strong className="text-[#34d399]">{userEmail}</strong>
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Fachkraft / Azubis / Mitarbeiter */}
-          <Card 
-            className="bg-[#161c21] border-[rgba(16,185,129,0.3)] p-8 cursor-pointer hover:border-[rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all group"
-            onClick={() => router.push("/auth/login?role=employee")}
-          >
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#10b981] to-[#059669] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-                Fachkraft / Azubi
-              </h2>
-              <p className="text-[#8fa3b3] mb-6">
-                Für ausländische Arbeitnehmer in Deutschland
-              </p>
-              <div className="space-y-2 text-left mb-6">
-                <div className="flex items-center gap-2 text-sm text-[#8fa3b3]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>
-                  Aufgaben-Checkliste
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[#8fa3b3]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>
-                  Dokumentenverwaltung
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[#8fa3b3]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>
-                  AI-Assistent
-                </div>
-              </div>
-              <Button className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold">
-                Weiter als Mitarbeiter
-              </Button>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-3 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-xl text-[#ef4444] text-sm fade-in">
+              {error}
             </div>
-          </Card>
+          )}
 
-          {/* HR Manager */}
-          <Card 
-            className="bg-[#161c21] border-[rgba(59,130,246,0.3)] p-8 cursor-pointer hover:border-[rgba(59,130,246,0.5)] hover:-translate-y-1 transition-all group"
-            onClick={() => router.push("/auth/login?role=hr")}
+          <div className="space-y-4">
+            <Label className="text-[#f0f4f8] text-base">Je suis...</Label>
+            <RadioGroup
+              value={role}
+              onValueChange={(value: "worker" | "hr_manager") => setRole(value)}
+              disabled={loading}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-3 p-4 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl cursor-pointer hover:border-[rgba(16,185,129,0.3)] transition-colors">
+                <RadioGroupItem value="worker" id="worker" />
+                <Label htmlFor="worker" className="cursor-pointer flex-1 text-[#f0f4f8]">
+                  <div className="font-semibold">Travailleur étranger</div>
+                  <div className="text-xs text-[#8fa3b3] mt-1">Fachkraft ou Azubi en Allemagne</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3 p-4 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl cursor-pointer hover:border-[rgba(16,185,129,0.3)] transition-colors">
+                <RadioGroupItem value="hr_manager" id="hr_manager" />
+                <Label htmlFor="hr_manager" className="cursor-pointer flex-1 text-[#f0f4f8]">
+                  <div className="font-semibold">Gestionnaire RH</div>
+                  <div className="text-xs text-[#8fa3b3] mt-1">J'accompagne des travailleurs étrangers</div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold rounded-xl h-12 shadow-lg shadow-[rgba(16,185,129,0.3)] btn-premium"
+            disabled={loading}
           >
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#1e40af] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Briefcase className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-                HR Manager
-              </h2>
-              <p className="text-[#8fa3b3] mb-6">
-                Für Personalverantwortliche
-              </p>
-              <div className="space-y-2 text-left mb-6">
-                <div className="flex items-center gap-2 text-sm text-[#8fa3b3]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></div>
-                  Team-Dashboard
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[#8fa3b3]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></div>
-                  Mitarbeiterverwaltung
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[#8fa3b3]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></div>
-                  Erinnerungen & Benachrichtigungen
-                </div>
-              </div>
-              <Button className="w-full bg-gradient-to-r from-[#3b82f6] to-[#1e40af] hover:from-[#60a5fa] hover:to-[#3b82f6] text-white font-semibold">
-                Weiter als HR Manager
-              </Button>
-            </div>
-          </Card>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              "Continuer"
+            )}
+          </Button>
+        </form>
+
+        <div className="mt-6 p-4 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl">
+          <p className="text-xs text-[#8fa3b3] text-center">
+            🔒 Votre compte Google est sécurisé. Vous recevrez un email de confirmation à votre adresse Google.
+          </p>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -110,6 +110,32 @@ export const authService = {
     }
   },
 
+  // Sign in with Google OAuth
+  async signInWithGoogle(): Promise<{ error: AuthError | null }> {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${getURL()}auth/role-select`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        return { error: { message: error.message } };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { 
+        error: { message: "An unexpected error occurred during Google sign in" } 
+      };
+    }
+  },
+
   // Sign out
   async signOut(): Promise<{ error: AuthError | null }> {
     try {

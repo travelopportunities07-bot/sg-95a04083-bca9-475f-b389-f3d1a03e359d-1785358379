@@ -23,6 +23,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null; userProfile?: UserProfile | null }>;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: Error | null; data?: { user: User } | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
 }
@@ -164,6 +165,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${getURL()}auth/role-select`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        console.error("Google sign in error:", error);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      console.error("Error in signInWithGoogle:", error);
+      return { error };
+    }
+  };
+
   const signUp = async (email: string, password: string, userData: any) => {
     try {
       // 1. Créer l'utilisateur auth (le trigger créera automatiquement le profil de base)
@@ -232,6 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     refreshUserProfile,
   };
