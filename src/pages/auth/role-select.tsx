@@ -14,6 +14,7 @@ export default function RoleSelect() {
   const [error, setError] = useState("");
   const [role, setRole] = useState<"worker" | "hr_manager">("worker");
   const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,8 +33,13 @@ export default function RoleSelect() {
         }
 
         setUserEmail(session.user.email || "");
+        
+        // Extraire le nom depuis les métadonnées Google
+        const metadata = session.user.user_metadata || {};
+        const fullName = metadata.full_name || metadata.name || "";
+        setUserName(fullName || "utilisateur");
 
-        // Vérifier si le profil existe déjà
+        // Vérifier si le profil existe déjà avec un rôle défini
         const { data: existingProfile } = await supabase
           .from("profiles")
           .select("*")
@@ -71,13 +77,16 @@ export default function RoleSelect() {
         throw new Error("No session found");
       }
 
-      // Extraire le prénom et nom du user_metadata
-      const fullName = session.user.user_metadata?.full_name || "";
-      const firstName = session.user.user_metadata?.given_name || fullName.split(" ")[0] || "";
-      const lastName = session.user.user_metadata?.family_name || fullName.split(" ").slice(1).join(" ") || "";
-      const avatarUrl = session.user.user_metadata?.avatar_url || "";
+      const metadata = session.user.user_metadata || {};
+      
+      // Extraction complète des données Google
+      const fullName = metadata.full_name || metadata.name || "";
+      const firstName = metadata.given_name || fullName.split(" ")[0] || "";
+      const lastName = metadata.family_name || fullName.split(" ").slice(1).join(" ") || "";
+      const avatarUrl = metadata.avatar_url || metadata.picture || "";
+      const googleId = metadata.sub || "";
 
-      // Créer ou mettre à jour le profil
+      // Créer ou mettre à jour le profil avec toutes les informations Google
       const { error: profileError } = await supabase
         .from("profiles")
         .upsert({
@@ -88,12 +97,30 @@ export default function RoleSelect() {
           last_name: lastName,
           full_name: fullName,
           avatar_url: avatarUrl,
+          google_id: googleId,
+          auth_provider: 'google',
+          last_login_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
 
       if (profileError) {
+        console.error("Profile upsert error:", profileError);
         throw profileError;
       }
+
+      // Vérifier que le profil a bien été créé
+      const { data: verifyProfile, error: verifyError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (verifyError || !verifyProfile) {
+        console.error("Profile verification error:", verifyError);
+        throw new Error("Le profil n'a pas pu être créé. Veuillez réessayer.");
+      }
+
+      console.log("Profile created successfully:", verifyProfile);
 
       // Rediriger selon le rôle
       if (role === "worker") {
@@ -103,7 +130,7 @@ export default function RoleSelect() {
       }
     } catch (err: any) {
       console.error("Error setting role:", err);
-      setError(err.message || "Une erreur est survenue");
+      setError(err.message || "Une erreur est survenue lors de la création de votre profil");
     } finally {
       setLoading(false);
     }
@@ -114,7 +141,7 @@ export default function RoleSelect() {
       <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
         <Card className="w-full max-w-md p-8 premium-card text-center bg-[#161c21] border-[rgba(16,185,129,0.3)]">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-[#8fa3b3]">Chargement...</p>
+          <p className="text-[#8fa3b3]">Chargement de votre profil...</p>
         </Card>
       </div>
     );
@@ -132,7 +159,7 @@ export default function RoleSelect() {
             <CheckCircle className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]" style={{fontFamily: 'Bricolage Grotesque, system-ui, sans-serif'}}>
-            Bienvenue !
+            Bienvenue{userName ? `, ${userName}` : ''} !
           </h1>
           <p className="text-[#8fa3b3] text-sm">
             Compte Google connecté : <strong className="text-[#34d399]">{userEmail}</strong>
@@ -179,7 +206,7 @@ export default function RoleSelect() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Enregistrement...
+                Création du profil...
               </>
             ) : (
               "Continuer"
@@ -187,10 +214,18 @@ export default function RoleSelect() {
           </Button>
         </form>
 
-        <div className="mt-6 p-4 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl">
-          <p className="text-xs text-[#8fa3b3] text-center">
-            🔒 Votre compte Google est sécurisé. Vous recevrez un email de confirmation à votre adresse Google.
-          </p>
+        <div className="mt-6 space-y-3">
+          <div className="p-4 bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl">
+            <p className="text-xs text-[#8fa3b3] text-center">
+              🔒 Votre compte Google est sécurisé. Un email de confirmation sera envoyé à votre adresse.
+            </p>
+          </div>
+          
+          <div className="p-3 bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] rounded-xl">
+            <p className="text-xs text-[#34d399] text-center">
+              ✓ Connexion rapide · ✓ Données synchronisées · ✓ Sécurité renforcée
+            </p>
+          </div>
         </div>
       </Card>
     </div>

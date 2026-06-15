@@ -9,11 +9,16 @@ interface UserProfile {
   role: "worker" | "hr_manager";
   first_name: string;
   last_name: string;
+  full_name?: string;
+  avatar_url?: string;
+  google_id?: string;
+  auth_provider?: string;
   nationality?: string;
   arrival_date?: string;
   job_type?: string;
   language_level?: string;
   company?: string;
+  last_login_at?: string;
 }
 
 interface AuthContextType {
@@ -26,6 +31,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,6 +50,27 @@ const getURL = () => {
   url = url.endsWith('/') ? url : `${url}/`
   
   return url
+}
+
+/**
+ * Extraire les informations du profil depuis les métadonnées Google
+ */
+function extractGoogleProfile(user: User): Partial<UserProfile> {
+  const metadata = user.user_metadata || {};
+  
+  // Extraire le nom complet
+  const fullName = metadata.full_name || metadata.name || '';
+  const firstName = metadata.given_name || fullName.split(' ')[0] || '';
+  const lastName = metadata.family_name || fullName.split(' ').slice(1).join(' ') || '';
+  
+  return {
+    full_name: fullName,
+    first_name: firstName,
+    last_name: lastName,
+    avatar_url: metadata.avatar_url || metadata.picture || '',
+    google_id: metadata.sub || '',
+    auth_provider: 'google',
+  };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -74,7 +101,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Rafraîchir la session manuellement
+   */
+  const refreshSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        console.error("Error refreshing session:", error);
+        return;
+      }
+      
+      if (session) {
+        setSession(session);
+        setUser(session.user);
+        await fetchUserProfile(session.user.id);
+      }
+    } catch (error) {
+      console.error("Error in refreshSession:", error);
+    }
+  };
+
+  /**
+   * Configuration automatique du refresh de session
+   */
   useEffect(() => {
+    // Rafraîchir la session toutes les 50 minutes (les tokens expirent généralement après 1h)
+    const refreshInterval = setInterval(() => {
+      refreshSession();
+    }, 50 * 60 * 1000); // 50 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  useEffect(() => {
+    // Récupérer la session initiale
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -86,9 +148,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    // S'abonner aux changements d'état d'authentification
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -96,6 +161,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUserProfile(session.user.id);
       } else {
         setUserProfile(null);
+      }
+      
+      // Gérer les événements spécifiques
+      switch (event) {
+        case 'SIGNED_IN':
+          console.log('User signed in:', session?.user?.email);
+          break;
+        case 'SIGNED_OUT':
+          console.log('User signed out');
+          setUserProfile(null);
+          break;
+        case 'TOKEN_REFRESHED':
+          console.log('Token refreshed');
+          break;
+        case 'USER_UPDATED':
+          console.log('User profile updated');
+          if (session?.user) {
+            await fetchUserProfile(session.user.id);
+          }
+          break;
       }
       
       setLoading(false);
@@ -114,7 +199,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error("Sign in error:", error);
         
-        // Messages d'erreur plus clairs
         if (error.message.includes("Email not confirmed")) {
           return { 
             error: new Error("Votre email n'est pas encore confirmé. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation."),
@@ -131,12 +215,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        // Attendre un peu pour que le profil soit créé par le trigger
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const profile = await fetchUserProfile(data.user.id);
         if (!profile) {
-          // Si le profil n'existe toujours pas, créer un profil basique
           const { error: profileError } = await supabase
             .from("profiles")
             .insert({
@@ -144,14 +226,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               email: data.user.email || email,
               role: 'worker',
               first_name: '',
-              last_name: ''
+              last_name: '',
+              auth_provider: 'email'
             });
 
           if (profileError) {
             console.error("Error creating profile:", profileError);
           }
           
-          // Récupérer à nouveau
           const retryProfile = await fetchUserProfile(data.user.id);
           return { error: null, userProfile: retryProfile };
         }
@@ -192,7 +274,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      // 1. Créer l'utilisateur auth (le trigger créera automatiquement le profil de base)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -209,12 +290,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authError) throw authError;
       if (!authData.user) throw new Error("No user returned");
 
-      // 2. Si l'utilisateur a des données supplémentaires, mettre à jour le profil
       if (userData.nationality || userData.arrival_date || userData.job_type || userData.language_level) {
-        // Attendre que le trigger crée le profil
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const profileUpdateData: any = {};
+        const profileUpdateData: any = {
+          auth_provider: 'email'
+        };
         if (userData.nationality) profileUpdateData.nationality = userData.nationality;
         if (userData.arrival_date) profileUpdateData.arrival_date = userData.arrival_date;
         if (userData.job_type) profileUpdateData.job_type = userData.job_type;
@@ -261,6 +342,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithGoogle,
     signOut,
     refreshUserProfile,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

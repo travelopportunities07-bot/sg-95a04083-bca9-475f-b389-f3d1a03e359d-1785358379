@@ -273,16 +273,19 @@ export type Database = {
       profiles: {
         Row: {
           arrival_date: string | null
+          auth_provider: string | null
           avatar_url: string | null
           company_id: string | null
           created_at: string | null
           email: string | null
           first_name: string | null
           full_name: string | null
+          google_id: string | null
           hr_manager_id: string | null
           id: string
           job_type: string | null
           language_level: string | null
+          last_login_at: string | null
           last_name: string | null
           nationality: string | null
           notification_preferences: Json | null
@@ -292,16 +295,19 @@ export type Database = {
         }
         Insert: {
           arrival_date?: string | null
+          auth_provider?: string | null
           avatar_url?: string | null
           company_id?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string | null
+          google_id?: string | null
           hr_manager_id?: string | null
           id: string
           job_type?: string | null
           language_level?: string | null
+          last_login_at?: string | null
           last_name?: string | null
           nationality?: string | null
           notification_preferences?: Json | null
@@ -311,16 +317,19 @@ export type Database = {
         }
         Update: {
           arrival_date?: string | null
+          auth_provider?: string | null
           avatar_url?: string | null
           company_id?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string | null
+          google_id?: string | null
           hr_manager_id?: string | null
           id?: string
           job_type?: string | null
           language_level?: string | null
+          last_login_at?: string | null
           last_name?: string | null
           nationality?: string | null
           notification_preferences?: Json | null
@@ -344,6 +353,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission: string
+          role: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission?: string
+          role?: string
+        }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -403,6 +433,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_permission: {
+        Args: { required_permission: string; user_id: string }
+        Returns: boolean
+      }
       update_profile_after_signup: {
         Args: { profile_data: Json; user_id: string }
         Returns: undefined
