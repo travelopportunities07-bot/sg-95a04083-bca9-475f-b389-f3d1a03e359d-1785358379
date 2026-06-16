@@ -72,14 +72,41 @@ export default function Login() {
     setError("");
     
     try {
+      console.log('Initiating Google Sign-In...');
       const { error } = await signInWithGoogle();
       
       if (error) {
-        setError(error.message || "Erreur lors de la connexion avec Google");
+        console.error('Google Sign-In error:', error);
+        
+        // Messages d'erreur spécifiques et détaillés
+        if (error.message.includes("provider is not enabled")) {
+          setError(
+            "⚠️ Google OAuth n'est pas activé. Configuration requise dans Supabase Dashboard : " +
+            "Authentication → Providers → Google"
+          );
+        } else if (error.message.includes("redirect")) {
+          setError(
+            "❌ Erreur de configuration de redirection. Contactez l'administrateur."
+          );
+        } else if (error.message.includes("credentials")) {
+          setError(
+            "❌ Identifiants Google OAuth manquants ou invalides."
+          );
+        } else {
+          setError(error.message || "Erreur lors de la connexion avec Google");
+        }
+        
+        // Afficher l'erreur complète dans la console
+        console.error('Full error details:', {
+          message: error.message,
+          code: error.code,
+          stack: error.stack
+        });
       }
-      // La redirection est gérée automatiquement par Supabase
+      // La redirection est gérée automatiquement par Supabase si succès
     } catch (err: any) {
-      setError("Une erreur est survenue lors de la connexion avec Google");
+      console.error('Unexpected error during Google Sign-In:', err);
+      setError("Une erreur inattendue est survenue lors de la connexion avec Google");
     } finally {
       setLoading(false);
     }

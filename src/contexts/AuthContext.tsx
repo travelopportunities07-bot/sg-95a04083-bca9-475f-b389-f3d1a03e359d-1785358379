@@ -249,7 +249,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('=== Google OAuth Debug ===');
+      console.log('Redirect URL:', `${getURL()}auth/role-select`);
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${getURL()}auth/role-select`,
@@ -261,13 +265,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) {
-        console.error("Google sign in error:", error);
+        console.error("=== Google OAuth Error ===");
+        console.error("Error code:", error.code);
+        console.error("Error message:", error.message);
+        console.error("Full error:", JSON.stringify(error, null, 2));
+        
+        // Messages d'erreur détaillés
+        if (error.message.includes("provider is not enabled")) {
+          return { 
+            error: new Error(
+              "Google OAuth n'est pas configuré. Veuillez configurer Google OAuth dans le dashboard Supabase : " +
+              "Authentication → Providers → Google → Activez et ajoutez vos credentials OAuth."
+            )
+          };
+        }
+        
+        if (error.message.includes("redirect")) {
+          return {
+            error: new Error(
+              "Erreur de configuration de redirection. URL de redirection : " + `${getURL()}auth/role-select`
+            )
+          };
+        }
+        
         return { error };
       }
 
+      console.log('=== Google OAuth Success ===');
+      console.log('Data:', data);
       return { error: null };
     } catch (error: any) {
-      console.error("Error in signInWithGoogle:", error);
+      console.error("=== Unexpected Error in signInWithGoogle ===");
+      console.error("Error:", error);
       return { error };
     }
   };
