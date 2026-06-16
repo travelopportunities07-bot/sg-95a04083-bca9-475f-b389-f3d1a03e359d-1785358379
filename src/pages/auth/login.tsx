@@ -96,10 +96,10 @@ export default function Login() {
           setError(error.message || "Erreur lors de la connexion avec Google");
         }
         
-        // Afficher l'erreur complète dans la console
+        // Afficher l'erreur complète dans la console (sans accéder à .code qui n'existe pas sur Error)
         console.error('Full error details:', {
           message: error.message,
-          code: error.code,
+          name: error.name,
           stack: error.stack
         });
       }
