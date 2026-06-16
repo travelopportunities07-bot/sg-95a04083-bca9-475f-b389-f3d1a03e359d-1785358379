@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon, DollarSign, Activity } from "lucide-react";
+import { Navbar } from "./Navbar";
 
 interface LayoutProps {
   children: ReactNode;
@@ -42,6 +43,9 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-[#0a0d0f]">
+      {/* Top Navbar */}
+      <Navbar />
+
       {/* Sidebar Navigation */}
       <nav className="fixed left-0 top-0 bottom-0 w-16 bg-[#0f1417] border-r border-white/[0.06] flex flex-col items-center py-5 gap-2 z-100">
         {/* Logo */}
@@ -112,8 +116,8 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="ml-16 flex-1 flex flex-col">
+      {/* Main Content with top padding for navbar */}
+      <div className="ml-16 flex-1 flex flex-col pt-16">
         {children}
       </div>
 
