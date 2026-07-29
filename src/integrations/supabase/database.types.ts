@@ -357,6 +357,70 @@ export type Database = {
           },
         ]
       }
+      reminders: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          hr_manager_id: string
+          id: string
+          message: string | null
+          read_at: string | null
+          sent_at: string
+          status: string
+          task_id: string | null
+          task_title: string
+          worker_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          hr_manager_id: string
+          id?: string
+          message?: string | null
+          read_at?: string | null
+          sent_at?: string
+          status?: string
+          task_id?: string | null
+          task_title: string
+          worker_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          hr_manager_id?: string
+          id?: string
+          message?: string | null
+          read_at?: string | null
+          sent_at?: string
+          status?: string
+          task_id?: string | null
+          task_title?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_hr_manager_id_fkey"
+            columns: ["hr_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string | null
