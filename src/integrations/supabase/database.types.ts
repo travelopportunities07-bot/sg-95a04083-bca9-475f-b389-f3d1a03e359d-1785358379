@@ -15,6 +15,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      absences: {
+        Row: {
+          absence_type: string
+          created_at: string | null
+          documents: Json | null
+          end_date: string
+          hr_manager_id: string
+          id: string
+          reason: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_date: string
+          status: string
+          total_days: number
+          updated_at: string | null
+          worker_id: string
+        }
+        Insert: {
+          absence_type: string
+          created_at?: string | null
+          documents?: Json | null
+          end_date: string
+          hr_manager_id: string
+          id?: string
+          reason?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date: string
+          status?: string
+          total_days: number
+          updated_at?: string | null
+          worker_id: string
+        }
+        Update: {
+          absence_type?: string
+          created_at?: string | null
+          documents?: Json | null
+          end_date?: string
+          hr_manager_id?: string
+          id?: string
+          reason?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string
+          status?: string
+          total_days?: number
+          updated_at?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absences_hr_manager_id_fkey"
+            columns: ["hr_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absences_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absences_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_logs: {
         Row: {
           action_type: string
@@ -54,6 +130,72 @@ export type Database = {
           {
             foreignKeyName: "activity_logs_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alerts: {
+        Row: {
+          action_required: boolean | null
+          action_url: string | null
+          alert_type: string
+          created_at: string | null
+          hr_manager_id: string
+          id: string
+          message: string
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+          triggered_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          action_required?: boolean | null
+          action_url?: string | null
+          alert_type: string
+          created_at?: string | null
+          hr_manager_id: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title: string
+          triggered_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          action_required?: boolean | null
+          action_url?: string | null
+          alert_type?: string
+          created_at?: string | null
+          hr_manager_id?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          triggered_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_hr_manager_id_fkey"
+            columns: ["hr_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_worker_id_fkey"
+            columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -223,6 +365,71 @@ export type Database = {
           {
             foreignKeyName: "invitations_invited_by_fkey"
             columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_reports: {
+        Row: {
+          active_employees: number
+          avg_progress: number
+          completed_tasks: number
+          created_at: string | null
+          documents_approved: number
+          documents_rejected: number
+          generated_at: string
+          hr_manager_id: string
+          id: string
+          new_hires: number
+          overdue_tasks: number
+          pdf_url: string | null
+          reminders_sent: number
+          report_data: Json | null
+          report_month: string
+          total_employees: number
+        }
+        Insert: {
+          active_employees?: number
+          avg_progress?: number
+          completed_tasks?: number
+          created_at?: string | null
+          documents_approved?: number
+          documents_rejected?: number
+          generated_at?: string
+          hr_manager_id: string
+          id?: string
+          new_hires?: number
+          overdue_tasks?: number
+          pdf_url?: string | null
+          reminders_sent?: number
+          report_data?: Json | null
+          report_month: string
+          total_employees?: number
+        }
+        Update: {
+          active_employees?: number
+          avg_progress?: number
+          completed_tasks?: number
+          created_at?: string | null
+          documents_approved?: number
+          documents_rejected?: number
+          generated_at?: string
+          hr_manager_id?: string
+          id?: string
+          new_hires?: number
+          overdue_tasks?: number
+          pdf_url?: string | null
+          reminders_sent?: number
+          report_data?: Json | null
+          report_month?: string
+          total_employees?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_reports_hr_manager_id_fkey"
+            columns: ["hr_manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -500,6 +707,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_automated_alerts: { Args: never; Returns: undefined }
       has_permission: {
         Args: { required_permission: string; user_id: string }
         Returns: boolean
