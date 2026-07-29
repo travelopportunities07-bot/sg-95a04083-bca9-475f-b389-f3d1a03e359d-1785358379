@@ -1,7 +1,24 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Home, CheckCircle, FileText, HelpCircle, Bell, User, LayoutDashboard, Users, Clock, Settings, LucideIcon, DollarSign, Activity } from "lucide-react";
+import { 
+  Home, 
+  CheckCircle, 
+  FileText, 
+  HelpCircle, 
+  Bell, 
+  User, 
+  LayoutDashboard, 
+  Users, 
+  Clock, 
+  Settings, 
+  LucideIcon, 
+  DollarSign, 
+  Activity,
+  FileBarChart,
+  AlertTriangle,
+  Calendar
+} from "lucide-react";
 import { Navbar } from "./Navbar";
 
 interface LayoutProps {
@@ -35,7 +52,11 @@ export function Layout({ children, view = "employee" }: LayoutProps) {
   const hrNav: NavItem[] = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/hr", tooltip: "Dashboard" },
     { icon: Users, label: "Mitarbeiter", path: "/hr/employees", tooltip: "Mitarbeiter" },
-    { icon: Clock, label: "Erinnerungen", path: "/hr/reminders", tooltip: "Erinnerungen", badge: 3 },
+    { icon: FileBarChart, label: "Reports", path: "/hr/reports", tooltip: "Berichte" },
+    { icon: AlertTriangle, label: "Alerts", path: "/hr/alerts", tooltip: "Warnungen", badge: 3 },
+    { icon: Calendar, label: "Abwesenheit", path: "/hr/absences", tooltip: "Abwesenheiten" },
+    { icon: Clock, label: "Erinnerungen", path: "/hr/reminders", tooltip: "Erinnerungen" },
+    { icon: Activity, label: "Aktivität", path: "/hr/activity", tooltip: "Aktivitätsverlauf" },
     { icon: Settings, label: "Einstellungen", path: "/hr/settings", tooltip: "Einstellungen" },
   ];
 

@@ -1,205 +1,148 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
-import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getActivityLogs, type ActionType } from "@/services/activityService";
-import { 
-  Activity, 
-  Mail, 
-  CheckCircle, 
-  XCircle, 
-  Bell, 
-  UserPlus, 
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Activity as ActivityIcon,
+  Mail,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
   FileText,
+  UserPlus,
   Clock,
-  Filter,
-  Calendar
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { useRouter } from "next/router";
+import { useAuth } from "@/contexts/AuthContext";
+import { getActivities, type ActivityLog } from "@/services/activityService";
 
-interface ActivityLog {
-  id: string;
-  user_id: string;
-  action_type: ActionType;
-  target_user_id: string | null;
-  target_user_email: string | null;
-  details: any;
-  created_at: string;
-  profiles: {
-    full_name: string;
-    email: string;
-  } | null;
-  target_profile: {
-    full_name: string;
-    email: string;
-  } | null;
-}
-
-export default function HRActivityPage() {
-  const { user, userProfile } = useAuth();
-  const { t } = useLanguage();
+export default function ActivityPage() {
   const router = useRouter();
-  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const { userProfile } = useAuth();
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedActionType, setSelectedActionType] = useState<string>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
+  const [filter, setFilter] = useState<string>("all");
 
   useEffect(() => {
-    if (!user) {
-      router.push("/auth/login");
-      return;
+    if (userProfile?.role === "hr_manager") {
+      loadActivities();
     }
+  }, [userProfile, filter]);
 
-    if (userProfile?.role !== "hr_manager") {
-      router.push("/");
-      return;
-    }
-
-    fetchActivityLogs();
-  }, [user, userProfile, selectedActionType, selectedPeriod]);
-
-  const fetchActivityLogs = async () => {
-    setLoading(true);
-
-    const filters: any = {};
-    
-    if (selectedActionType !== "all") {
-      filters.actionType = selectedActionType as ActionType;
-    }
-
-    if (selectedPeriod !== "all") {
-      const now = new Date();
-      const startDate = new Date();
-
-      switch (selectedPeriod) {
-        case "week":
-          startDate.setDate(now.getDate() - 7);
-          break;
-        case "month":
-          startDate.setMonth(now.getMonth() - 1);
-          break;
-        case "3months":
-          startDate.setMonth(now.getMonth() - 3);
-          break;
-      }
-
-      filters.startDate = startDate.toISOString();
-    }
-
-    const { logs: fetchedLogs, error } = await getActivityLogs(filters);
-
-    if (error) {
-      console.error("Error fetching activity logs:", error);
-    } else {
-      setLogs(fetchedLogs as any);
-    }
-
-    setLoading(false);
-  };
-
-  const getActionIcon = (actionType: ActionType) => {
-    switch (actionType) {
-      case "invite_sent":
-        return <Mail className="w-5 h-5 text-[#3B82F6]" />;
-      case "document_approved":
-        return <CheckCircle className="w-5 h-5 text-[#22C55E]" />;
-      case "document_rejected":
-        return <XCircle className="w-5 h-5 text-[#EF4444]" />;
-      case "reminder_sent":
-        return <Bell className="w-5 h-5 text-[#F59E0B]" />;
-      case "profile_updated":
-        return <UserPlus className="w-5 h-5 text-[#8B5CF6]" />;
-      case "task_assigned":
-        return <FileText className="w-5 h-5 text-[#06B6D4]" />;
-      case "worker_onboarded":
-        return <UserPlus className="w-5 h-5 text-[#10B981]" />;
-      default:
-        return <Activity className="w-5 h-5 text-[#64748B]" />;
+  const loadActivities = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await getActivities(filter === "all" ? undefined : filter);
+      
+      if (error) throw new Error(error);
+      
+      setActivities(data);
+    } catch (error: any) {
+      console.error("Error loading activities:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getActionColor = (actionType: ActionType) => {
-    switch (actionType) {
-      case "invite_sent":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "document_approved":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "document_rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "reminder_sent":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "profile_updated":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "task_assigned":
-        return "bg-cyan-100 text-cyan-800 border-cyan-200";
-      case "worker_onboarded":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "reminder_sent": return Mail;
+      case "task_completed": return CheckCircle;
+      case "task_created": return FileText;
+      case "document_uploaded": return FileText;
+      case "document_validated": return CheckCircle;
+      case "document_rejected": return XCircle;
+      case "invitation_sent": return UserPlus;
+      case "invitation_accepted": return CheckCircle;
+      case "alert_created": return AlertTriangle;
+      case "alert_resolved": return CheckCircle;
+      case "report_generated": return TrendingUp;
+      case "absence_requested": return Clock;
+      case "absence_approved": return CheckCircle;
+      case "absence_rejected": return XCircle;
+      default: return ActivityIcon;
     }
   };
 
-  const getActionLabel = (actionType: ActionType) => {
-    switch (actionType) {
-      case "invite_sent":
-        return "Invitation envoyée";
-      case "document_approved":
-        return "Document approuvé";
-      case "document_rejected":
-        return "Document rejeté";
+  const getActivityColor = (type: string) => {
+    switch (type) {
       case "reminder_sent":
-        return "Rappel envoyé";
-      case "profile_updated":
-        return "Profil mis à jour";
-      case "task_assigned":
-        return "Tâche assignée";
-      case "worker_onboarded":
-        return "Travailleur intégré";
+      case "invitation_sent":
+      case "task_created":
+      case "document_uploaded":
+      case "absence_requested":
+        return "bg-primary/10 border-primary/30 text-primary";
+      case "task_completed":
+      case "document_validated":
+      case "invitation_accepted":
+      case "alert_resolved":
+      case "absence_approved":
+        return "bg-success/10 border-success/30 text-success";
+      case "document_rejected":
+      case "absence_rejected":
+        return "bg-destructive/10 border-destructive/30 text-destructive";
+      case "alert_created":
+        return "bg-warning/10 border-warning/30 text-warning";
       default:
-        return actionType;
+        return "bg-muted/10 border-muted/30 text-muted-foreground";
     }
+  };
+
+  const getActivityLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      "reminder_sent": "Erinnerung gesendet",
+      "task_completed": "Aufgabe erledigt",
+      "task_created": "Aufgabe erstellt",
+      "document_uploaded": "Dokument hochgeladen",
+      "document_validated": "Dokument validiert",
+      "document_rejected": "Dokument abgelehnt",
+      "invitation_sent": "Einladung gesendet",
+      "invitation_accepted": "Einladung akzeptiert",
+      "alert_created": "Warnung erstellt",
+      "alert_resolved": "Warnung gelöst",
+      "report_generated": "Bericht generiert",
+      "absence_requested": "Abwesenheit beantragt",
+      "absence_approved": "Abwesenheit genehmigt",
+      "absence_rejected": "Abwesenheit abgelehnt"
+    };
+    return labels[type] || type;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const groupLogsByDate = () => {
-    const grouped: { [key: string]: ActivityLog[] } = {};
-
-    logs.forEach((log) => {
-      const date = new Date(log.created_at);
-      const dateKey = date.toLocaleDateString("de-DE", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      return `vor ${diffInMinutes} Min.`;
+    } else if (diffInHours < 24) {
+      return `vor ${diffInHours} Std.`;
+    } else {
+      return date.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       });
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
-      }
-      grouped[dateKey].push(log);
-    });
-
-    return grouped;
+    }
   };
 
-  const groupedLogs = groupLogsByDate();
-
-  if (loading) {
+  if (userProfile?.role !== "hr_manager") {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1F7A63]"></div>
+          <Card className="p-8 text-center">
+            <p className="text-destructive mb-4">Nur für HR Manager verfügbar</p>
+            <Button onClick={() => router.push("/")}>
+              Zurück zum Dashboard
+            </Button>
+          </Card>
         </div>
       </Layout>
     );
@@ -207,170 +150,92 @@ export default function HRActivityPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#F5F7F6]">
-        <div className="container py-6 space-y-6">
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-[#1E293B]">Journal d'activité</h1>
-            <p className="text-[#64748B]">Historique de toutes vos actions HR</p>
+      <div className="container py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Aktivitätsverlauf</h1>
+            <p className="text-muted-foreground">
+              Alle Aktivitäten Ihres Teams im Überblick
+            </p>
           </div>
+          <Button variant="outline" onClick={loadActivities}>
+            <ActivityIcon className="w-4 h-4 mr-2" />
+            Aktualisieren
+          </Button>
+        </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription className="text-[#64748B] text-sm">Total des actions</CardDescription>
-                <CardTitle className="text-2xl font-bold text-[#1E293B]">{logs.length}</CardTitle>
-              </CardHeader>
-            </Card>
+        {/* Filters */}
+        <Card className="p-4">
+          <Tabs value={filter} onValueChange={setFilter}>
+            <TabsList className="grid grid-cols-5 w-full">
+              <TabsTrigger value="all">Alle</TabsTrigger>
+              <TabsTrigger value="reminder_sent">Erinnerungen</TabsTrigger>
+              <TabsTrigger value="document_validated">Dokumente</TabsTrigger>
+              <TabsTrigger value="invitation_sent">Einladungen</TabsTrigger>
+              <TabsTrigger value="alert_created">Warnungen</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription className="text-[#64748B] text-sm">Invitations</CardDescription>
-                <CardTitle className="text-2xl font-bold text-[#3B82F6]">
-                  {logs.filter((l) => l.action_type === "invite_sent").length}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription className="text-[#64748B] text-sm">Documents approuvés</CardDescription>
-                <CardTitle className="text-2xl font-bold text-[#22C55E]">
-                  {logs.filter((l) => l.action_type === "document_approved").length}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription className="text-[#64748B] text-sm">Rappels envoyés</CardDescription>
-                <CardTitle className="text-2xl font-bold text-[#F59E0B]">
-                  {logs.filter((l) => l.action_type === "reminder_sent").length}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </div>
-
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Filter className="w-5 h-5" />
-                Filtres
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1E293B]">Type d'action</label>
-                  <Select value={selectedActionType} onValueChange={setSelectedActionType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Toutes les actions" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes les actions</SelectItem>
-                      <SelectItem value="invite_sent">Invitations envoyées</SelectItem>
-                      <SelectItem value="document_approved">Documents approuvés</SelectItem>
-                      <SelectItem value="document_rejected">Documents rejetés</SelectItem>
-                      <SelectItem value="reminder_sent">Rappels envoyés</SelectItem>
-                      <SelectItem value="profile_updated">Profils mis à jour</SelectItem>
-                      <SelectItem value="task_assigned">Tâches assignées</SelectItem>
-                      <SelectItem value="worker_onboarded">Travailleurs intégrés</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1E293B]">Période</label>
-                  <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Toutes les périodes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes les périodes</SelectItem>
-                      <SelectItem value="week">Dernière semaine</SelectItem>
-                      <SelectItem value="month">Dernier mois</SelectItem>
-                      <SelectItem value="3months">3 derniers mois</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Activity Timeline */}
-          <div className="space-y-6">
-            {Object.keys(groupedLogs).length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Activity className="w-16 h-16 mx-auto mb-4 text-[#64748B] opacity-50" />
-                  <h3 className="text-lg font-semibold text-[#1E293B] mb-2">
-                    Aucune activité enregistrée
-                  </h3>
-                  <p className="text-[#64748B]">
-                    Les actions que vous effectuez apparaîtront ici
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              Object.keys(groupedLogs)
-                .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-                .map((dateKey) => (
-                  <div key={dateKey} className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-[#1F7A63]" />
-                      <h2 className="text-xl font-semibold text-[#1E293B]">{dateKey}</h2>
-                      <div className="flex-1 border-t border-[#E2E8F0]"></div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {groupedLogs[dateKey].map((log) => (
-                        <Card key={log.id} className="hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-4">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#F5F7F6] flex items-center justify-center">
-                                {getActionIcon(log.action_type)}
+        {/* Activity Timeline */}
+        <Card className="p-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Lade Aktivitäten...</p>
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="text-center py-12">
+              <ActivityIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Keine Aktivitäten gefunden</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activities.map((activity, index) => {
+                const Icon = getActivityIcon(activity.activity_type);
+                const isLast = index === activities.length - 1;
+                
+                return (
+                  <div key={activity.id} className="relative">
+                    {!isLast && (
+                      <div className="absolute left-5 top-12 bottom-0 w-0.5 bg-border" />
+                    )}
+                    
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.activity_type)}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      
+                      <div className="flex-1 pb-4">
+                        <div className="flex items-start justify-between gap-4 mb-1">
+                          <div>
+                            <Badge className={`${getActivityColor(activity.activity_type)} mb-2`}>
+                              {getActivityLabel(activity.activity_type)}
+                            </Badge>
+                            <p className="text-sm">
+                              {activity.details}
+                            </p>
+                            {activity.metadata && Object.keys(activity.metadata).length > 0 && (
+                              <div className="mt-2 p-2 bg-muted/5 rounded-lg">
+                                <p className="text-xs text-muted-foreground">
+                                  {JSON.stringify(activity.metadata, null, 2)}
+                                </p>
                               </div>
-
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="space-y-1 flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <Badge className={`${getActionColor(log.action_type)} px-2 py-1 text-xs`}>
-                                        {getActionLabel(log.action_type)}
-                                      </Badge>
-                                    </div>
-                                    
-                                    <div className="text-sm text-[#1E293B]">
-                                      {log.target_user_email && (
-                                        <span className="font-medium">{log.target_user_email}</span>
-                                      )}
-                                      {log.details?.document_name && (
-                                        <span className="text-[#64748B]"> - {log.details.document_name}</span>
-                                      )}
-                                      {log.details?.message && (
-                                        <p className="text-[#64748B] mt-1">{log.details.message}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-xs text-[#64748B]">
-                                  <Clock className="w-3 h-3" />
-                                  {formatDate(log.created_at)}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatDate(activity.created_at)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))
-            )}
-          </div>
-        </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
       </div>
     </Layout>
   );
