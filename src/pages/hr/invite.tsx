@@ -1,194 +1,232 @@
 import { useState } from "react";
-import { useRouter } from "next/router";
-import { useAuth } from "@/contexts/AuthContext";
+import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/router";
+import { Mail, Loader2, CheckCircle2, Copy, ArrowLeft } from "lucide-react";
 import { createInvitation } from "@/services/invitationService";
-import { ArrowLeft, Mail, Loader2, Copy, CheckCircle, QrCode } from "lucide-react";
-import QRCode from "qrcode";
+import { sendInvitationEmail } from "@/services/emailService";
+import Link from "next/link";
 
 export default function InvitePage() {
+  const { userProfile } = useAuth();
   const router = useRouter();
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
   const [inviteCode, setInviteCode] = useState("");
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
     firstName: "",
     lastName: "",
-    role: "worker" as "worker" | "hr_manager"
+    role: "worker" as "worker" | "hr_manager",
+    jobType: "Fachkraft" as "Fachkraft" | "Azubi"
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user || !("company_id" in user)) {
-      toast({
-        title: "Erreur",
-        description: "Aucune entreprise associée",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setLoading(true);
+    setError("");
 
     try {
-      const { data, error, inviteLink: link } = await createInvitation(
-        formData.email,
-        (user as any).company_id,
-        user.id,
-        formData.firstName,
-        formData.lastName,
-        formData.role
-      );
-
-      if (error) throw error;
-
-      if (data && link) {
-        setInviteLink(link);
-        setInviteCode(data.code);
-        
-        // Generate QR code
-        const qrUrl = await QRCode.toDataURL(link, {
-          width: 300,
-          margin: 2,
-          color: {
-            dark: "#1F7A63",
-            light: "#F5F7F6"
-          }
-        });
-        setQrCodeUrl(qrUrl);
-
-        // Send invitation email
-        const emailResponse = await fetch("/api/send-invite", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: formData.email,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            inviteLink: link,
-            inviteCode: data.code
-          })
-        });
-
-        if (!emailResponse.ok) {
-          throw new Error("Erreur lors de l'envoi de l'email");
-        }
-
-        toast({
-          title: "Invitation envoyée",
-          description: `Un email a été envoyé à ${formData.email}`,
-        });
-
-        // Reset form
-        setFormData({
-          email: "",
-          firstName: "",
-          lastName: "",
-          role: "worker"
-        });
+      if (!userProfile?.id) {
+        throw new Error("User profile not found");
       }
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors de la création de l'invitation",
-        variant: "destructive"
+
+      // Create invitation in database
+      const { data: invitation, error: inviteError } = await createInvitation({
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.role,
+        invitedBy: userProfile.id,
+        companyId: userProfile.company_id
       });
+
+      if (inviteError) throw inviteError;
+
+      const baseUrl = window.location.origin;
+      const link = `${baseUrl}/auth/signup?invite=${invitation.code}`;
+      
+      setInviteLink(link);
+      setInviteCode(invitation.code);
+
+      // Send invitation email
+      const inviterName = `${userProfile.first_name} ${userProfile.last_name}` || userProfile.email;
+      const companyName = userProfile.company || "Ihr Unternehmen";
+
+      await sendInvitationEmail({
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        inviterName,
+        companyName,
+        inviteLink: link,
+        inviteCode: invitation.code
+      });
+
+      setSuccess(true);
+    } catch (err: any) {
+      console.error("Error creating invitation:", err);
+      setError(err.message || "Fehler beim Erstellen der Einladung");
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copié",
-        description: "Lien copié dans le presse-papier"
-      });
-    } catch (err) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de copier le lien",
-        variant: "destructive"
-      });
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
-  const downloadQRCode = () => {
-    const link = document.createElement("a");
-    link.download = `invitation-${inviteCode}.png`;
-    link.href = qrCodeUrl;
-    link.click();
-  };
+  if (!userProfile || userProfile.role !== "hr_manager") {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Card className="p-8 text-center">
+            <p className="text-destructive mb-4">Nur für HR Manager verfügbar</p>
+            <Button onClick={() => router.push("/")}>
+              Zurück zum Dashboard
+            </Button>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (success) {
+    return (
+      <Layout>
+        <div className="max-w-2xl mx-auto py-12 px-4">
+          <Card className="p-8 text-center border-[rgba(16,185,129,0.3)]">
+            <div className="w-16 h-16 rounded-2xl bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)] flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-[#34d399]" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]">
+              Einladung erfolgreich gesendet!
+            </h1>
+            <p className="text-[#8fa3b3] mb-6">
+              Eine E-Mail wurde an <strong className="text-[#34d399]">{formData.email}</strong> gesendet.
+            </p>
+
+            <div className="bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-4">
+              <Label className="text-sm text-[#8fa3b3] mb-2 block">Einladungscode</Label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-[#0f1417] px-4 py-3 rounded-lg text-[#34d399] font-mono text-lg">
+                  {inviteCode}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(inviteCode)}
+                  className="shrink-0"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
+              <Label className="text-sm text-[#8fa3b3] mb-2 block">Einladungslink</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={inviteLink}
+                  readOnly
+                  className="flex-1 bg-[#0f1417] text-[#8fa3b3] text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(inviteLink)}
+                  className="shrink-0"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setSuccess(false);
+                  setFormData({
+                    email: "",
+                    firstName: "",
+                    lastName: "",
+                    role: "worker",
+                    jobType: "Fachkraft"
+                  });
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Weitere Einladung senden
+              </Button>
+              <Button
+                onClick={() => router.push("/hr/employees")}
+                className="flex-1 bg-gradient-to-r from-[#10b981] to-[#059669]"
+              >
+                Zu Mitarbeitern
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground">
-        <div className="container py-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-primary-foreground hover:bg-primary-foreground/20"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+    <Layout>
+      <div className="max-w-2xl mx-auto py-12 px-4">
+        <Link href="/hr/employees">
+          <Button variant="ghost" className="mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zurück zu Mitarbeiter
+          </Button>
+        </Link>
+
+        <Card className="p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#10b981] to-[#059669] flex items-center justify-center">
+              <Mail className="w-6 h-6 text-white" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold">Mitarbeiter einladen</h1>
-              <p className="text-sm text-primary-foreground/80">
-                Neuen Mitarbeiter zur Plattform einladen
+              <h1 className="text-2xl font-bold text-[#f0f4f8]">
+                Mitarbeiter einladen
+              </h1>
+              <p className="text-[#8fa3b3] text-sm">
+                Senden Sie eine Einladung an einen neuen Mitarbeiter
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="container py-6 max-w-2xl space-y-6">
-        {/* Invitation Form */}
-        <Card className="p-6 premium-card">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">E-Mail *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="mitarbeiter@example.de"
-                required
-                disabled={loading}
-              />
-            </div>
+            {error && (
+              <div className="p-3 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-xl text-[#ef4444] text-sm">
+                {error}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Vorname</Label>
                 <Input
                   id="firstName"
-                  type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  required
                   placeholder="Max"
-                  disabled={loading}
                 />
               </div>
 
@@ -196,38 +234,71 @@ export default function InvitePage() {
                 <Label htmlFor="lastName">Nachname</Label>
                 <Input
                   id="lastName"
-                  type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  required
                   placeholder="Mustermann"
-                  disabled={loading}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Rolle *</Label>
+              <Label htmlFor="email">E-Mail</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                placeholder="max.mustermann@example.com"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Rolle</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value: "worker" | "hr_manager") => 
-                  setFormData({ ...formData, role: value })
-                }
-                disabled={loading}
+                onValueChange={(value: any) => setFormData({ ...formData, role: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="worker">Mitarbeiter (Worker)</SelectItem>
+                  <SelectItem value="worker">Fachkraft / Azubi</SelectItem>
                   <SelectItem value="hr_manager">HR Manager</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {formData.role === "worker" && (
+              <div className="space-y-2">
+                <Label htmlFor="jobType">Art der Stelle</Label>
+                <Select
+                  value={formData.jobType}
+                  onValueChange={(value: any) => setFormData({ ...formData, jobType: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fachkraft">Fachkraft (Skilled Worker)</SelectItem>
+                    <SelectItem value="Azubi">Azubi (Apprentice)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="bg-[#1c242b] border border-[rgba(16,185,129,0.3)] rounded-xl p-4">
+              <p className="text-sm text-[#8fa3b3]">
+                <strong className="text-[#34d399]">ℹ️ Hinweis:</strong> Der Mitarbeiter erhält eine E-Mail mit einem einzigartigen Einladungslink. 
+                Der Link ist 7 Tage gültig.
+              </p>
+            </div>
+
             <Button
               type="submit"
-              className="w-full bg-primary"
               disabled={loading}
+              className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold h-12"
             >
               {loading ? (
                 <>
@@ -243,83 +314,7 @@ export default function InvitePage() {
             </Button>
           </form>
         </Card>
-
-        {/* Invitation Result */}
-        {inviteLink && (
-          <Card className="p-6 premium-card space-y-4 fade-in-up">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-success" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Einladung erstellt</h3>
-                <p className="text-sm text-muted-foreground">
-                  Code: <span className="font-mono font-bold text-primary">{inviteCode}</span>
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Einladungslink</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={inviteLink}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => copyToClipboard(inviteLink)}
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Gültig für 7 Tage
-              </p>
-            </div>
-
-            {qrCodeUrl && (
-              <div className="space-y-2">
-                <Label>QR-Code</Label>
-                <div className="flex flex-col items-center gap-3 p-4 bg-muted/5 rounded-lg border">
-                  <img 
-                    src={qrCodeUrl} 
-                    alt="QR Code"
-                    className="w-48 h-48 rounded-lg"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={downloadQRCode}
-                  >
-                    <QrCode className="w-4 h-4 mr-2" />
-                    QR-Code herunterladen
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Der Mitarbeiter kann den QR-Code scannen, um sich direkt zu registrieren
-                </p>
-              </div>
-            )}
-          </Card>
-        )}
-
-        {/* Instructions */}
-        <Card className="p-4 bg-muted/5 border-muted/30">
-          <h3 className="font-semibold mb-2 flex items-center gap-2">
-            <Mail className="w-4 h-4 text-primary" />
-            So funktioniert's
-          </h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Der Mitarbeiter erhält eine E-Mail mit dem Einladungslink</li>
-            <li>• Beim Klicken wird automatisch ein Konto erstellt</li>
-            <li>• Der Mitarbeiter wird automatisch Ihrem Unternehmen zugeordnet</li>
-            <li>• Der Einladungslink ist 7 Tage gültig</li>
-          </ul>
-        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }

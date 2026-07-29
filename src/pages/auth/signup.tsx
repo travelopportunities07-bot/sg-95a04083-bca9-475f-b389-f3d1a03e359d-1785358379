@@ -36,12 +36,13 @@ export default function Signup() {
   const [invitation, setInvitation] = useState<any>(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState("");
+  const [workerWithoutInvite, setWorkerWithoutInvite] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    role: "worker" as "worker" | "hr_manager",
+    role: "hr_manager" as "worker" | "hr_manager",
     firstName: "",
     lastName: "",
     nationality: "",
@@ -91,6 +92,12 @@ export default function Signup() {
     e.preventDefault();
     
     if (submittedRef.current || loading) {
+      return;
+    }
+
+    // BLOC worker sans invitation
+    if (formData.role === "worker" && !invitation) {
+      setWorkerWithoutInvite(true);
       return;
     }
 
@@ -195,6 +202,12 @@ export default function Signup() {
         setError(t("auth.signup.passwordMismatch"));
         return;
       }
+      
+      // BLOC worker sans invitation
+      if (formData.role === "worker" && !invitation) {
+        setWorkerWithoutInvite(true);
+        return;
+      }
     }
     
     if (step === 2 && formData.role === "worker") {
@@ -214,6 +227,47 @@ export default function Signup() {
   };
 
   const totalSteps = formData.role === "worker" ? 3 : 2;
+
+  // Show worker without invitation message
+  if (workerWithoutInvite) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0d0f] p-4">
+        <Card className="w-full max-w-md p-8 premium-card text-center bg-[#161c21] border-[rgba(239,68,68,0.3)]">
+          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+          <h1 className="text-2xl font-bold mb-2 text-[#f0f4f8]">Einladung erforderlich</h1>
+          <p className="text-[#8fa3b3] mb-6">
+            Als Fachkraft oder Azubi können Sie sich nicht direkt registrieren. 
+            Sie müssen eine Einladung von Ihrem HR Manager erhalten.
+          </p>
+          <div className="bg-[#1c242b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 text-left">
+            <p className="text-sm text-[#8fa3b3] mb-2">
+              <strong className="text-[#f0f4f8]">Wie funktioniert es?</strong>
+            </p>
+            <ol className="text-sm text-[#8fa3b3] space-y-2 list-decimal list-inside">
+              <li>Ihr HR Manager sendet Ihnen eine Einladungs-E-Mail</li>
+              <li>Klicken Sie auf den Link in der E-Mail</li>
+              <li>Erstellen Sie Ihr Konto mit dem Einladungscode</li>
+            </ol>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setWorkerWithoutInvite(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              Zurück
+            </Button>
+            <Button
+              onClick={() => router.push("/auth/login")}
+              className="flex-1 bg-gradient-to-r from-[#10b981] to-[#059669]"
+            >
+              Zur Anmeldung
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   // Show invitation loading state
   if (inviteCode && inviteLoading) {

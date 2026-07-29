@@ -278,6 +278,7 @@ export type Database = {
           company_id: string | null
           created_at: string | null
           email: string | null
+          first_login: boolean | null
           first_name: string | null
           full_name: string | null
           google_id: string | null
@@ -300,6 +301,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           email?: string | null
+          first_login?: boolean | null
           first_name?: string | null
           full_name?: string | null
           google_id?: string | null
@@ -322,6 +324,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           email?: string | null
+          first_login?: boolean | null
           first_name?: string | null
           full_name?: string | null
           google_id?: string | null

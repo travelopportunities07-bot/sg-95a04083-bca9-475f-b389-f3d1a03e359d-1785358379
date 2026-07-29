@@ -16,7 +16,9 @@
     "next": "Weiter",
     "skip": "Überspringen",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "online": "Online",
+    "offline": "Offline"
   },
   "onboarding": {
     "next": "Weiter",
@@ -32,7 +34,9 @@
       "submit": "Anmelden",
       "noAccount": "Noch kein Konto?",
       "signupLink": "Jetzt registrieren",
-      "error": "Anmeldung fehlgeschlagen. Bitte überprüfe deine Anmeldedaten."
+      "error": "Anmeldung fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.",
+      "googleSignIn": "Mit Google anmelden",
+      "forgotPassword": "Passwort vergessen?"
     },
     "signup": {
       "title": "Konto erstellen",
@@ -59,9 +63,12 @@
       "loginLink": "Anmelden",
       "success": "Konto erfolgreich erstellt! Bitte überprüfe deine E-Mail.",
       "passwordMismatch": "Passwörter stimmen nicht überein",
-      "error": "Registrierung fehlgeschlagen. Bitte versuche es erneut."
+      "error": "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+      "invitationRequired": "Einladung erforderlich",
+      "googleSignIn": "Mit Google fortfahren"
     },
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "signOut": "Abmelden"
   },
   "navigation": {
     "home": "Home",
@@ -72,7 +79,9 @@
     "dashboard": "Dashboard",
     "employees": "Mitarbeiter",
     "reminders": "Erinnerungen",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "invite": "Einladen",
+    "myProfile": "Mein Profil"
   },
   "dashboard": {
     "worker": {
@@ -105,11 +114,35 @@
       "urgentAlerts": "Dringende Warnungen",
       "employeeList": "Mitarbeiter-Übersicht",
       "teamProgress": "Team-Fortschritt",
+      "inviteEmployee": "Mitarbeiter einladen",
       "status": {
         "ok": "OK",
         "attention": "Achtung",
         "critical": "Kritisch"
       }
+    }
+  },
+  "invitation": {
+    "title": "Mitarbeiter einladen",
+    "subtitle": "Senden Sie eine Einladung an einen neuen Mitarbeiter",
+    "form": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "role": "Rolle",
+      "jobType": "Art der Stelle"
+    },
+    "success": {
+      "title": "Einladung erfolgreich gesendet!",
+      "message": "Eine E-Mail wurde an {email} gesendet.",
+      "code": "Einladungscode",
+      "link": "Einladungslink",
+      "sendAnother": "Weitere Einladung senden",
+      "viewEmployees": "Zu Mitarbeitern"
+    },
+    "error": {
+      "invalidCode": "Ungültiger oder abgelaufener Einladungscode",
+      "required": "Sie benötigen eine Einladung von Ihrem HR Manager"
     }
   },
   "tasks": {
@@ -219,6 +252,10 @@
     "documentValidated": "Dokument validiert",
     "documentRejected": "Dokument abgelehnt",
     "reminderSent": "Erinnerung gesendet",
-    "error": "Ein Fehler ist aufgetreten"
+    "invitationSent": "Einladung gesendet",
+    "welcomeEmailSent": "Willkommens-E-Mail gesendet",
+    "error": "Ein Fehler ist aufgetreten",
+    "success": "Erfolgreich",
+    "signedOut": "Sie wurden erfolgreich abgemeldet"
   }
 }
