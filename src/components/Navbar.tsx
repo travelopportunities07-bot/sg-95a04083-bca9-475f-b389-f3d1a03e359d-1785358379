@@ -120,9 +120,15 @@ export function Navbar() {
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-[#f0f4f8] hidden lg:block max-w-[120px] truncate">
-                    {userProfile.first_name || userProfile.email}
-                  </span>
+                  <div className="hidden lg:flex items-center gap-2">
+                    <span className="text-sm text-[#f0f4f8] max-w-[120px] truncate">
+                      {userProfile.first_name || userProfile.email}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></div>
+                      <span className="text-xs text-[#10b981] font-medium">En ligne</span>
+                    </div>
+                  </div>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-[#1c242b] border-[rgba(255,255,255,0.06)]">

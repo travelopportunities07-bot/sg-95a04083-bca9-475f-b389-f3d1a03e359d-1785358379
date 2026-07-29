@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "next/router";
+import { sendWelcomeEmail, markFirstLoginComplete } from "@/services/emailService";
 
 interface UserProfile {
   id: string;
@@ -19,6 +20,7 @@ interface UserProfile {
   language_level?: string;
   company?: string;
   last_login_at?: string;
+  first_login?: boolean;
 }
 
 interface AuthContextType {
@@ -102,6 +104,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   /**
+   * Gérer la première connexion Google
+   */
+  const handleFirstGoogleLogin = async (userId: string, profile: UserProfile) => {
+    // Vérifier si c'est la première connexion
+    if (profile.first_login !== false) {
+      console.log("📧 First login detected - sending welcome email");
+      
+      const firstName = profile.first_name || profile.email.split('@')[0];
+      
+      // Envoyer l'email de bienvenue
+      await sendWelcomeEmail({
+        email: profile.email,
+        firstName,
+        userId,
+        role: profile.role
+      });
+
+      // Marquer la première connexion comme effectuée
+      await markFirstLoginComplete(userId);
+      
+      // Rafraîchir le profil
+      await fetchUserProfile(userId);
+    }
+  };
+
+  /**
    * Rafraîchir la session manuellement
    */
   const refreshSession = async () => {
@@ -127,28 +155,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Configuration automatique du refresh de session
    */
   useEffect(() => {
-    // Rafraîchir la session toutes les 50 minutes (les tokens expirent généralement après 1h)
     const refreshInterval = setInterval(() => {
       refreshSession();
-    }, 50 * 60 * 1000); // 50 minutes
+    }, 50 * 60 * 1000);
 
     return () => clearInterval(refreshInterval);
   }, []);
 
   useEffect(() => {
-    // Récupérer la session initiale
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        await fetchUserProfile(session.user.id);
+        const profile = await fetchUserProfile(session.user.id);
+        
+        // Si connexion Google, vérifier first_login
+        if (profile?.auth_provider === 'google') {
+          await handleFirstGoogleLogin(session.user.id, profile);
+        }
       }
       
       setLoading(false);
     });
 
-    // S'abonner aux changements d'état d'authentification
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -158,12 +188,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        await fetchUserProfile(session.user.id);
+        const profile = await fetchUserProfile(session.user.id);
+        
+        // Si SIGNED_IN et Google, vérifier first_login
+        if (event === 'SIGNED_IN' && profile?.auth_provider === 'google') {
+          await handleFirstGoogleLogin(session.user.id, profile);
+        }
       } else {
         setUserProfile(null);
       }
       
-      // Gérer les événements spécifiques
       switch (event) {
         case 'SIGNED_IN':
           console.log('User signed in:', session?.user?.email);
