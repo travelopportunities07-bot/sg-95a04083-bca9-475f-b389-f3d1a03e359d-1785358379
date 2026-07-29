@@ -51,7 +51,7 @@ export async function generateMonthlyReport(reportMonth: string) {
     // Get tasks stats
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("user_id, status, due_date")
+      .select("user_id, status, due_date, updated_at, created_at")
       .in("user_id", workers?.map(w => w.id) || []);
 
     const completedTasks = tasks?.filter(t => t.status === "completed").length || 0;
