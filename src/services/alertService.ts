@@ -14,6 +14,13 @@ export interface Alert {
   metadata?: any;
   triggered_at: string;
   resolved_at?: string;
+  worker?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    avatar_url?: string;
+  };
 }
 
 /**
@@ -50,7 +57,7 @@ export async function getAlerts(status?: string) {
 
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as Alert[], error: null };
   } catch (error: any) {
     console.error("Error fetching alerts:", error);
     return { data: [], error: error.message };
