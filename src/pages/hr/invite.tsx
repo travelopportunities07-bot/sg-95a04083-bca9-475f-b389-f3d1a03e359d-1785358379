@@ -46,14 +46,14 @@ export default function InvitePage() {
       }
 
       // Create invitation in database
-      const { data: invitation, error: inviteError } = await createInvitation({
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        role: formData.role,
-        invitedBy: userProfile.id,
-        companyId: userProfile.company_id
-      });
+      const { data: invitation, error: inviteError } = await createInvitation(
+        formData.email,
+        userProfile.company || "default",
+        userProfile.id,
+        formData.firstName,
+        formData.lastName,
+        formData.role
+      );
 
       if (inviteError) throw inviteError;
 
